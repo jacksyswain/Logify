@@ -1,4 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Logify 🚧  
+**Log it. Fix it. Track it.**
+
+Logify is a modern, role-based maintenance logging and issue tracking application built with **Next.js**. It allows teams to record, document, and manage maintenance problems using auto-generated timestamps, image uploads, markdown-formatted notes, and controlled access for different user roles.
+
+---
+
+## ✨ Features
+
+### 🔐 Authentication & Roles
+- Secure authentication using Next.js
+- Role-based access control:
+  - **Visitor** – View-only access to all logs
+  - **Technician** – Create, edit, and mark down issues
+  - **Admin** – Full access to all features
+
+---
+
+### 📝 Maintenance Logs / Tickets
+- Create maintenance tickets with:
+  - Title
+  - Markdown-supported description
+  - Image uploads (snaps of issues)
+- Auto-generated **date & time** on ticket creation
+- Server-side timestamping for accuracy
+
+---
+
+### 📸 Image Uploads
+- Upload multiple images per ticket
+- Images stored in cloud storage (not in database)
+- Thumbnail preview support
+
+---
+
+### 📄 Markdown Support
+- Write detailed issue descriptions using Markdown
+- Supports:
+  - Headings
+  - Lists
+  - Code blocks
+  - Checklists
+  - Tables
+- Clean markdown rendering for viewers
+
+---
+
+### ✅ Issue Status Tracking
+- Ticket statuses:
+  - `OPEN`
+  - `MARKED_DOWN`
+  - `RESOLVED`
+- Track:
+  - Who marked down the issue
+  - When it was marked
+- Full visibility for all users
+
+---
+
+### 👀 Transparency & Visibility
+- All visitors can view issues and logs
+- Clearly displays:
+  - Created by
+  - Created at (date & time)
+  - Status updates
+  - Technician/admin actions
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Next.js (App Router)**
+- **JavaScript (JS-only, no TypeScript)**
+- **Tailwind CSS**
+
+### Backend
+- **Next.js API Routes**
+- **NextAuth.js** (authentication)
+- **MongoDB**
+- **Mongoose**
+
+### Storage
+- Cloud image storage (e.g., Cloudinary / AWS S3)
+
+---
+
+## 📂 Project Structure
+
+```txt
+src/
+ ├─ app/
+ │   ├─ page.js
+ │   ├─ login/
+ │   ├─ dashboard/
+ │   ├─ api/
+ │   └─ layout.js
+ │
+ ├─ components/
+ ├─ lib/
+ │   ├─ db.js
+ │   └─ auth.js
+ ├─ models/
+ │   ├─ User.js
+ │   └─ Ticket.js
+ └─ styles/
+
 
 ## Getting Started
 
@@ -33,4 +139,4 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.Flquifgu0AjujFDw
