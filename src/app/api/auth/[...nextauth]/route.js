@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+export { authOptions };
 
 const authOptions = {
   providers: [
@@ -72,4 +73,4 @@ const authOptions = {
 const handler = NextAuth(authOptions);
 
 // ✅ REQUIRED for App Router
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST,authOptions };
