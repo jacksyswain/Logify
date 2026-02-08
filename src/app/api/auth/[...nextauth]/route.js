@@ -3,9 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
-export { authOptions };
 
-const authOptions = {
+// ✅ Export authOptions ONLY ONCE (named export)
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -56,6 +56,7 @@ const authOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
@@ -70,7 +71,8 @@ const authOptions = {
   },
 };
 
+// ✅ Create handler
 const handler = NextAuth(authOptions);
 
-// ✅ REQUIRED for App Router
-export { handler as GET, handler as POST,authOptions };
+// ✅ App Router requires named method exports ONLY
+export { handler as GET, handler as POST };

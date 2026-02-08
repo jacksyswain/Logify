@@ -9,18 +9,42 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchTickets = async () => {
       const res = await fetch("/api/tickets");
       const data = await res.json();
       setTickets(data);
+      setFilteredTickets(data);
       setLoading(false);
     };
 
     fetchTickets();
   }, []);
+
+  // 🔍 Filter + Search logic
+  useEffect(() => {
+    let result = [...tickets];
+
+    if (statusFilter !== "ALL") {
+      result = result.filter(
+        (t) => t.status === statusFilter
+      );
+    }
+
+    if (search.trim()) {
+      result = result.filter((t) =>
+        t.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    setFilteredTickets(result);
+  }, [statusFilter, search, tickets]);
 
   if (loading) {
     return (
@@ -31,9 +55,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">
           Maintenance Tickets
         </h1>
@@ -52,16 +76,42 @@ export default function DashboardPage() {
           )}
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Status Filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value)
+          }
+          className="p-2 border rounded w-full md:w-48"
+        >
+          <option value="ALL">All Status</option>
+          <option value="OPEN">Open</option>
+          <option value="MARKED_DOWN">Marked Down</option>
+          <option value="RESOLVED">Resolved</option>
+        </select>
+
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search by title..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 border rounded w-full"
+        />
+      </div>
+
       {/* Empty state */}
-      {tickets.length === 0 && (
+      {filteredTickets.length === 0 && (
         <p className="text-gray-500">
-          No tickets found.
+          No tickets match your filters.
         </p>
       )}
 
-      {/* Ticket list */}
+      {/* Ticket List */}
       <div className="space-y-4">
-        {tickets.map((ticket) => (
+        {filteredTickets.map((ticket) => (
           <div
             key={ticket._id}
             onClick={() =>
@@ -74,9 +124,7 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-semibold">
                   {ticket.title}
                 </h2>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Created on{" "}
+                <p className="text-sm text-gray-500">
                   {new Date(
                     ticket.createdAt
                   ).toLocaleString()}
@@ -93,10 +141,10 @@ export default function DashboardPage() {
 }
 
 /* ================================
-   Status Badge Component
+   Status Badge
 ================================ */
 function StatusBadge({ status }) {
-  const colors = {
+  const styles = {
     OPEN: "bg-blue-100 text-blue-700",
     MARKED_DOWN: "bg-yellow-100 text-yellow-700",
     RESOLVED: "bg-green-100 text-green-700",
@@ -105,7 +153,7 @@ function StatusBadge({ status }) {
   return (
     <span
       className={`px-3 py-1 text-sm rounded-full ${
-        colors[status] || "bg-gray-100"
+        styles[status] || "bg-gray-100"
       }`}
     >
       {status}
