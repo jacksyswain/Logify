@@ -9,6 +9,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     await signIn("credentials", {
       email,
       password,
@@ -17,28 +18,37 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow w-80"
+        className="bg-white p-6 rounded shadow w-80 space-y-4"
       >
-        <h2 className="text-xl font-bold mb-4">Login to Logify</h2>
+        <h1 className="text-xl font-bold text-center">
+          Login to Logify
+        </h1>
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full p-2 border rounded"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full p-2 border rounded"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
-        <button className="w-full bg-black text-white py-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-black text-white py-2 rounded"
+        >
           Login
         </button>
       </form>

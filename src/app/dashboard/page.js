@@ -58,6 +58,15 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
+        {session?.user.role === "ADMIN" && (
+  <a
+    href="/dashboard/admin/users/new"
+    className="text-sm underline"
+  >
+    + Create User
+  </a>
+)}
+
         <h1 className="text-2xl font-bold">
           Maintenance Tickets
         </h1>
