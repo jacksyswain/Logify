@@ -4,6 +4,64 @@ import connectDB from "@/lib/db";
 import Ticket from "@/models/Ticket";
 
 /* =====================================================
+   GET /api/tickets/:id
+   Fetch single ticket (public + role-aware)
+===================================================== */
+export async function GET(req, { params }) {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return Response.json(
+        { message: "Ticket ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Optional session (visitors allowed)
+    const session = await getServerSession(authOptions);
+
+    await connectDB();
+
+    const ticket = await Ticket.findById(id)
+      .populate("createdBy", "name email role")
+      .populate("markedDownBy", "name email role");
+
+    if (!ticket) {
+      return Response.json(
+        { message: "Ticket not found" },
+        { status: 404 }
+      );
+    }
+
+    // Visitor → limited data
+    if (!session) {
+      return Response.json(
+        {
+          _id: ticket._id,
+          title: ticket.title,
+          descriptionMarkdown: ticket.descriptionMarkdown,
+          images: ticket.images,
+          status: ticket.status,
+          createdAt: ticket.createdAt,
+          updatedAt: ticket.updatedAt,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Logged-in users → full data
+    return Response.json(ticket, { status: 200 });
+  } catch (error) {
+    console.error("Get Single Ticket Error:", error);
+    return Response.json(
+      { message: "Failed to fetch ticket" },
+      { status: 500 }
+    );
+  }
+}
+
+/* =====================================================
    PATCH /api/tickets/:id
    Update / Mark Down / Resolve ticket
 ===================================================== */
@@ -28,7 +86,7 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // 3️⃣ Get ticket ID
+    // 3️⃣ Ticket ID
     const { id } = params;
 
     if (!id) {
@@ -39,16 +97,11 @@ export async function PATCH(req, { params }) {
     }
 
     // 4️⃣ Parse body
-    const {
-      title,
-      descriptionMarkdown,
-      status, // OPEN | MARKED_DOWN | RESOLVED
-    } = await req.json();
+    const { title, descriptionMarkdown, status } = await req.json();
 
-    // 5️⃣ Connect DB
     await connectDB();
 
-    // 6️⃣ Find ticket
+    // 5️⃣ Find ticket
     const ticket = await Ticket.findById(id);
 
     if (!ticket) {
@@ -58,24 +111,23 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // 7️⃣ Update fields (if provided)
+    // 6️⃣ Update fields
     if (title) ticket.title = title;
     if (descriptionMarkdown) {
       ticket.descriptionMarkdown = descriptionMarkdown;
     }
 
-    // 8️⃣ Handle status change
+    // 7️⃣ Status update
     if (status) {
       ticket.status = status;
 
-      // If marked down or resolved → track who & when
       if (status === "MARKED_DOWN" || status === "RESOLVED") {
         ticket.markedDownBy = session.user.id;
         ticket.markedDownAt = new Date();
       }
     }
 
-    // 9️⃣ Save changes
+    // 8️⃣ Save
     await ticket.save();
 
     return Response.json(
