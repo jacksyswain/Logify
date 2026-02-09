@@ -15,19 +15,30 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
+  /* ================================
+     Fetch tickets
+  ================================ */
   useEffect(() => {
     const fetchTickets = async () => {
-      const res = await fetch("/api/tickets");
-      const data = await res.json();
-      setTickets(data);
-      setFilteredTickets(data);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/tickets");
+        const data = await res.json();
+
+        setTickets(data);
+        setFilteredTickets(data);
+      } catch (err) {
+        console.error("Failed to load tickets", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTickets();
   }, []);
 
-  // 🔍 Filter + Search logic
+  /* ================================
+     Filter + Search
+  ================================ */
   useEffect(() => {
     let result = [...tickets];
 
@@ -46,9 +57,12 @@ export default function DashboardPage() {
     setFilteredTickets(result);
   }, [statusFilter, search, tickets]);
 
+  /* ================================
+     Loading state
+  ================================ */
   if (loading) {
     return (
-      <div className="p-6 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-gray-500">
         Loading tickets...
       </div>
     );
@@ -56,38 +70,45 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        {session?.user.role === "ADMIN" && (
-  <a
-    href="/dashboard/admin/users/new"
-    className="text-sm underline"
-  >
-    + Create User
-  </a>
-)}
+      {/* ================= Header ================= */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">
+            Maintenance Tickets
+          </h1>
+          <p className="text-sm text-gray-500">
+            {filteredTickets.length} ticket(s)
+          </p>
+        </div>
 
-        <h1 className="text-2xl font-bold">
-          Maintenance Tickets
-        </h1>
+        <div className="flex gap-3">
+          {session?.user.role === "ADMIN" && (
+            <button
+              onClick={() =>
+                router.push("/dashboard/admin/users/new")
+              }
+              className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
+              + Create User
+            </button>
+          )}
 
-        {session &&
-          (session.user.role === "ADMIN" ||
-            session.user.role === "TECHNICIAN") && (
+          {(session?.user.role === "ADMIN" ||
+            session?.user.role === "TECHNICIAN") && (
             <button
               onClick={() =>
                 router.push("/dashboard/tickets/new")
               }
-              className="px-4 py-2 bg-black text-white rounded"
+              className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
             >
               + New Ticket
             </button>
           )}
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Status Filter */}
+      {/* ================= Filters ================= */}
+      <div className="bg-white p-4 rounded-lg border flex flex-col md:flex-row gap-4">
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -101,32 +122,38 @@ export default function DashboardPage() {
           <option value="RESOLVED">Resolved</option>
         </select>
 
-        {/* Search */}
         <input
           type="text"
-          placeholder="Search by title..."
+          placeholder="Search tickets..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="p-2 border rounded w-full"
         />
       </div>
 
-      {/* Empty state */}
+      {/* ================= Empty State ================= */}
       {filteredTickets.length === 0 && (
-        <p className="text-gray-500">
-          No tickets match your filters.
-        </p>
+        <div className="text-center py-20 text-gray-500">
+          <p className="text-lg font-medium">
+            No tickets found
+          </p>
+          <p className="text-sm">
+            Try changing filters or create a new ticket.
+          </p>
+        </div>
       )}
 
-      {/* Ticket List */}
-      <div className="space-y-4">
+      {/* ================= Ticket List ================= */}
+      <div className="grid gap-4">
         {filteredTickets.map((ticket) => (
           <div
             key={ticket._id}
             onClick={() =>
-              router.push(`/dashboard/tickets/${ticket._id}`)
+              router.push(
+                `/dashboard/tickets/${ticket._id}`
+              )
             }
-            className="p-4 border rounded cursor-pointer hover:bg-gray-50 transition"
+            className="bg-white border rounded-lg p-4 cursor-pointer hover:shadow transition"
           >
             <div className="flex justify-between items-start">
               <div>
@@ -161,8 +188,8 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`px-3 py-1 text-sm rounded-full ${
-        styles[status] || "bg-gray-100"
+      className={`px-3 py-1 text-xs font-medium rounded-full ${
+        styles[status] || "bg-gray-100 text-gray-700"
       }`}
     >
       {status}
