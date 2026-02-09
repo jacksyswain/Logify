@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
-// ✅ Export authOptions ONLY ONCE (named export)
+// ✅ Export authOptions ONLY ONCE
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -13,18 +13,28 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
         await connectDB();
 
+        // 1️⃣ Validate input
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing credentials");
         }
 
+        // 2️⃣ Find user
         const user = await User.findOne({ email: credentials.email });
+
         if (!user) {
           throw new Error("User not found");
         }
 
+        // 🚫 3️⃣ Block disabled users
+        if (user.isActive === false) {
+          throw new Error("User account is disabled");
+        }
+
+        // 4️⃣ Validate password
         const validPassword = await bcrypt.compare(
           credentials.password,
           user.password
@@ -34,6 +44,7 @@ export const authOptions = {
           throw new Error("Invalid password");
         }
 
+        // 5️⃣ Return safe user object
         return {
           id: user._id.toString(),
           name: user.name,
@@ -71,8 +82,8 @@ export const authOptions = {
   },
 };
 
-// ✅ Create handler
+// ✅ Create NextAuth handler
 const handler = NextAuth(authOptions);
 
-// ✅ App Router requires named method exports ONLY
+// ✅ App Router named exports
 export { handler as GET, handler as POST };
