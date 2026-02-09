@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default function TicketDetailPage() {
   const { id } = useParams();
@@ -13,179 +12,165 @@ export default function TicketDetailPage() {
 
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [description, setDescription] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
-  const isEditor =
-    session &&
-    (session.user.role === "ADMIN" ||
-      session.user.role === "TECHNICIAN");
-
+  /* ================================
+     Fetch ticket
+  ================================ */
   useEffect(() => {
+    if (!id) return;
+
     const fetchTicket = async () => {
-      const res = await fetch(`/api/tickets/${id}`);
-      const data = await res.json();
-      setTicket(data);
-      setDescription(data.descriptionMarkdown || "");
-      setLoading(false);
+      try {
+        const res = await fetch(`/api/tickets/${id}`);
+        const data = await res.json();
+        setTicket(data);
+      } catch (err) {
+        console.error("Failed to load ticket", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTicket();
   }, [id]);
 
-  if (loading) {
-    return <div className="p-6 text-gray-500">Loading ticket...</div>;
-  }
+  /* ================================
+     Update ticket status
+  ================================ */
+  const updateStatus = async (status) => {
+    try {
+      setUpdating(true);
 
-  if (!ticket || ticket.message) {
-    return <div className="p-6 text-red-600">Ticket not found.</div>;
-  }
+      await fetch(`/api/tickets/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
 
-  /* ========================
-     Actions
-  ========================= */
-
-  const updateTicket = async (payload) => {
-    setSaving(true);
-
-    const res = await fetch(`/api/tickets/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    setSaving(false);
-
-    if (res.ok) {
-      setTicket(data.ticket);
-      setEditing(false);
-    } else {
-      alert("Action failed");
+      setTicket((prev) => ({
+        ...prev,
+        status,
+      }));
+    } catch (err) {
+      console.error("Failed to update status", err);
+    } finally {
+      setUpdating(false);
     }
   };
 
+  /* ================================
+     Loading state
+  ================================ */
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        Loading ticket...
+      </div>
+    );
+  }
+
+  if (!ticket) {
+    return (
+      <div className="p-6 text-red-500">
+        Ticket not found
+      </div>
+    );
+  }
+
+  const canEdit =
+    session &&
+    (session.user.role === "ADMIN" ||
+      session.user.role === "TECHNICIAN");
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      {/* Header */}
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* ================= Header ================= */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold">{ticket.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Created on {new Date(ticket.createdAt).toLocaleString()}
+          <h1 className="text-2xl font-bold">
+            {ticket.title}
+          </h1>
+          <p className="text-sm text-gray-500">
+            Created{" "}
+            {new Date(
+              ticket.createdAt
+            ).toLocaleString()}
           </p>
         </div>
 
         <StatusBadge status={ticket.status} />
       </div>
 
-      {/* Metadata */}
-      {session && ticket.createdBy && (
-        <div className="text-sm text-gray-600">
-          <p>
-            Created by{" "}
-            <span className="font-medium">
-              {ticket.createdBy.name}
-            </span>
-          </p>
+      {/* ================= Actions ================= */}
+      {canEdit && (
+        <div className="flex gap-3">
+          {ticket.status !== "MARKED_DOWN" && (
+            <button
+              disabled={updating}
+              onClick={() =>
+                updateStatus("MARKED_DOWN")
+              }
+              className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
+              Mark Down
+            </button>
+          )}
 
-          {ticket.markedDownBy && (
-            <p>
-              Marked down by{" "}
-              <span className="font-medium">
-                {ticket.markedDownBy.name}
-              </span>{" "}
-              on{" "}
-              {new Date(ticket.markedDownAt).toLocaleString()}
-            </p>
+          {ticket.status !== "RESOLVED" && (
+            <button
+              disabled={updating}
+              onClick={() =>
+                updateStatus("RESOLVED")
+              }
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Resolve
+            </button>
           )}
         </div>
       )}
 
-      {/* Description */}
-      {!editing ? (
-        <div className="prose max-w-none border p-4 rounded bg-gray-50">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      {/* ================= Description ================= */}
+      <div className="bg-white border rounded-lg p-6">
+        <h2 className="font-semibold mb-3">
+          Description
+        </h2>
+
+        <article className="prose max-w-none">
+          <ReactMarkdown>
             {ticket.descriptionMarkdown}
           </ReactMarkdown>
-        </div>
-      ) : (
-        <textarea
-          className="w-full h-64 p-3 border rounded font-mono"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      )}
+        </article>
+      </div>
 
-      {/* Images */}
+      {/* ================= Images ================= */}
       {ticket.images?.length > 0 && (
-        <div>
-          <h2 className="font-semibold mb-2">Images</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {ticket.images.map((img, i) => (
+        <div className="bg-white border rounded-lg p-6">
+          <h2 className="font-semibold mb-4">
+            Images
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {ticket.images.map((img, idx) => (
               <img
-                key={i}
+                key={idx}
                 src={img}
-                alt="ticket"
-                className="w-full h-32 object-cover rounded border"
+                alt="Ticket"
+                className="rounded border object-cover"
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Action Buttons (Editors only) */}
-      {isEditor && (
-        <div className="flex gap-3 flex-wrap pt-4 border-t">
-          {!editing ? (
-            <button
-              onClick={() => setEditing(true)}
-              className="px-4 py-2 border rounded"
-            >
-              ✏️ Edit
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() =>
-                  updateTicket({
-                    descriptionMarkdown: description,
-                  })
-                }
-                disabled={saving}
-                className="px-4 py-2 bg-black text-white rounded"
-              >
-                💾 Save
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-            </>
-          )}
-
-          {ticket.status !== "MARKED_DOWN" && (
-            <button
-              onClick={() => updateTicket({ status: "MARKED_DOWN" })}
-              className="px-4 py-2 bg-yellow-500 text-white rounded"
-            >
-              ⚠️ Mark Down
-            </button>
-          )}
-
-          {ticket.status !== "RESOLVED" && (
-            <button
-              onClick={() => updateTicket({ status: "RESOLVED" })}
-              className="px-4 py-2 bg-green-600 text-white rounded"
-            >
-              ✅ Resolve
-            </button>
-          )}
-        </div>
-      )}
+      {/* ================= Meta ================= */}
+      <div className="text-sm text-gray-500">
+        Created by:{" "}
+        {ticket.createdBy?.name ||
+          ticket.createdBy?.email ||
+          "Unknown"}
+      </div>
     </div>
   );
 }
@@ -202,7 +187,7 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`px-3 py-1 text-sm rounded-full ${
+      className={`px-3 py-1 text-sm font-medium rounded-full ${
         styles[status] || "bg-gray-100"
       }`}
     >
