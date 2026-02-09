@@ -2,25 +2,24 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Ticket from "@/models/Ticket";
+import mongoose from "mongoose";
 
 /* =====================================================
    GET /api/tickets/:id
-   Fetch single ticket (public + role-aware)
 ===================================================== */
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   try {
-    const { id } = params;
+    // ✅ MUST unwrap params like this
+    const { id } = await context.params;
 
-    if (!id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return Response.json(
-        { message: "Ticket ID is required" },
+        { message: "Invalid ticket ID" },
         { status: 400 }
       );
     }
 
-    // Optional session (visitors allowed)
     const session = await getServerSession(authOptions);
-
     await connectDB();
 
     const ticket = await Ticket.findById(id)
@@ -34,7 +33,7 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Visitor → limited data
+    // Visitor
     if (!session) {
       return Response.json(
         {
@@ -50,12 +49,11 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Logged-in users → full data
     return Response.json(ticket, { status: 200 });
   } catch (error) {
-    console.error("Get Single Ticket Error:", error);
+    console.error("GET /api/tickets/[id] error:", error);
     return Response.json(
-      { message: "Failed to fetch ticket" },
+      { message: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -63,11 +61,9 @@ export async function GET(req, { params }) {
 
 /* =====================================================
    PATCH /api/tickets/:id
-   Update / Mark Down / Resolve ticket
 ===================================================== */
-export async function PATCH(req, { params }) {
+export async function PATCH(req, context) {
   try {
-    // 1️⃣ Get session
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -77,31 +73,31 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // 2️⃣ Role check
-    const role = session.user.role;
-    if (role !== "ADMIN" && role !== "TECHNICIAN") {
+    if (
+      session.user.role !== "ADMIN" &&
+      session.user.role !== "TECHNICIAN"
+    ) {
       return Response.json(
         { message: "Forbidden" },
         { status: 403 }
       );
     }
 
-    // 3️⃣ Ticket ID
-    const { id } = params;
+    // ✅ unwrap params
+    const { id } = await context.params;
 
-    if (!id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return Response.json(
-        { message: "Ticket ID is required" },
+        { message: "Invalid ticket ID" },
         { status: 400 }
       );
     }
 
-    // 4️⃣ Parse body
-    const { title, descriptionMarkdown, status } = await req.json();
+    const { title, descriptionMarkdown, status } =
+      await req.json();
 
     await connectDB();
 
-    // 5️⃣ Find ticket
     const ticket = await Ticket.findById(id);
 
     if (!ticket) {
@@ -111,13 +107,10 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // 6️⃣ Update fields
     if (title) ticket.title = title;
-    if (descriptionMarkdown) {
+    if (descriptionMarkdown)
       ticket.descriptionMarkdown = descriptionMarkdown;
-    }
 
-    // 7️⃣ Status update
     if (status) {
       ticket.status = status;
 
@@ -127,18 +120,14 @@ export async function PATCH(req, { params }) {
       }
     }
 
-    // 8️⃣ Save
     await ticket.save();
 
     return Response.json(
-      {
-        message: "Ticket updated successfully",
-        ticket,
-      },
+      { message: "Ticket updated", ticket },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Update Ticket Error:", error);
+    console.error("PATCH /api/tickets/[id] error:", error);
     return Response.json(
       { message: "Internal Server Error" },
       { status: 500 }
