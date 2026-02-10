@@ -25,11 +25,16 @@ export default function TicketDetailPage() {
     if (!id) return;
 
     const fetchTicket = async () => {
-      const res = await fetch(`/api/tickets/${id}`);
-      const data = await res.json();
-      setTicket(data);
-      setDraft(data.descriptionMarkdown);
-      setLoading(false);
+      try {
+        const res = await fetch(`/api/tickets/${id}`);
+        const data = await res.json();
+        setTicket(data);
+        setDraft(data.descriptionMarkdown || "");
+      } catch (err) {
+        console.error("Failed to fetch ticket", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTicket();
@@ -57,7 +62,7 @@ export default function TicketDetailPage() {
 
       setIsEditing(false);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to update ticket", err);
     } finally {
       setUpdating(false);
     }
@@ -85,17 +90,15 @@ export default function TicketDetailPage() {
 
     setTimeout(() => {
       textarea.focus();
-      textarea.selectionStart =
-        start + before.length;
-      textarea.selectionEnd =
-        end + before.length;
+      textarea.selectionStart = start + before.length;
+      textarea.selectionEnd = end + before.length;
     }, 0);
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Loading ticket...
+        Loading ticket…
       </div>
     );
   }
@@ -114,28 +117,29 @@ export default function TicketDetailPage() {
       session.user.role === "TECHNICIAN");
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div>
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      {/* ================= Header ================= */}
+      <div className="bg-white border rounded-xl p-6">
         <h1 className="text-2xl font-bold">
           {ticket.title}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 mt-1">
+          Created on{" "}
           {new Date(ticket.createdAt).toLocaleString()}
         </p>
       </div>
 
-      {/* Description */}
-      <div className="bg-white border rounded-lg p-6 space-y-4">
+      {/* ================= Description ================= */}
+      <div className="bg-white border rounded-xl p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="font-semibold">
+          <h2 className="font-semibold text-lg">
             Description
           </h2>
 
           {canEdit && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="text-sm underline"
+              className="text-sm text-blue-600 hover:underline"
             >
               Edit
             </button>
@@ -144,7 +148,7 @@ export default function TicketDetailPage() {
 
         {isEditing ? (
           <>
-            {/* Toolbar */}
+            {/* ================= Toolbar ================= */}
             <div className="flex flex-wrap gap-2 border-b pb-3">
               <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
                 Bold
@@ -153,7 +157,7 @@ export default function TicketDetailPage() {
                 Heading
               </ToolbarButton>
               <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
-                Code
+                Inline Code
               </ToolbarButton>
               <ToolbarButton onClick={() => applyMarkdown("\n```js\n", "\n```\n")}>
                 Code Block
@@ -166,33 +170,33 @@ export default function TicketDetailPage() {
               </ToolbarButton>
             </div>
 
-            {/* Editor + Preview */}
+            {/* ================= Editor + Preview ================= */}
             <div className="grid md:grid-cols-2 gap-4">
               <textarea
                 ref={textareaRef}
                 value={draft}
-                onChange={(e) =>
-                  setDraft(e.target.value)
-                }
-                rows={12}
-                className="w-full border rounded p-3 font-mono text-sm"
+                onChange={(e) => setDraft(e.target.value)}
+                rows={14}
+                className="w-full border rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring"
               />
 
-              <div className="border rounded p-3 overflow-auto">
-                <ReactMarkdown className="prose max-w-none">
-                  {draft}
-                </ReactMarkdown>
+              <div className="border rounded-lg p-4 overflow-auto bg-gray-50">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>
+                    {draft || "_Nothing to preview_"}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
+            {/* ================= Actions ================= */}
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={saveMarkdown}
                 disabled={updating}
-                className="px-4 py-2 bg-black text-white rounded"
+                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
               >
-                Save
+                {updating ? "Saving…" : "Save"}
               </button>
 
               <button
@@ -200,7 +204,7 @@ export default function TicketDetailPage() {
                   setDraft(ticket.descriptionMarkdown);
                   setIsEditing(false);
                 }}
-                className="px-4 py-2 border rounded"
+                className="px-4 py-2 border rounded-lg"
               >
                 Cancel
               </button>
@@ -209,7 +213,7 @@ export default function TicketDetailPage() {
         ) : (
           <article className="prose max-w-none">
             <ReactMarkdown>
-              {ticket.descriptionMarkdown}
+              {ticket.descriptionMarkdown || "_No description provided_"}
             </ReactMarkdown>
           </article>
         )}
