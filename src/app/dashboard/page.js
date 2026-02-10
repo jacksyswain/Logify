@@ -89,9 +89,7 @@ export default function DashboardPage() {
         <div className="flex gap-3">
           {session?.user.role === "ADMIN" && (
             <button
-              onClick={() =>
-                router.push("/dashboard/admin/users")
-              }
+              onClick={() => router.push("/dashboard/admin/users")}
               className="px-4 py-2 border rounded-lg hover:bg-gray-50"
             >
               Manage Users
@@ -101,9 +99,7 @@ export default function DashboardPage() {
           {(session?.user.role === "ADMIN" ||
             session?.user.role === "TECHNICIAN") && (
             <button
-              onClick={() =>
-                router.push("/dashboard/tickets/new")
-              }
+              onClick={() => router.push("/dashboard/tickets/new")}
               className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
             >
               + New Ticket
@@ -112,35 +108,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ================= Stats Cards ================= */}
+      {/* ================= Stats ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard
-          label="Open"
-          value={stats.OPEN}
-          color="blue"
-          onClick={() => setStatusFilter("OPEN")}
-        />
-        <StatCard
-          label="Marked Down"
-          value={stats.MARKED_DOWN}
-          color="yellow"
-          onClick={() => setStatusFilter("MARKED_DOWN")}
-        />
-        <StatCard
-          label="Resolved"
-          value={stats.RESOLVED}
-          color="green"
-          onClick={() => setStatusFilter("RESOLVED")}
-        />
+        <StatCard label="Open" value={stats.OPEN} color="blue" onClick={() => setStatusFilter("OPEN")} />
+        <StatCard label="Marked Down" value={stats.MARKED_DOWN} color="yellow" onClick={() => setStatusFilter("MARKED_DOWN")} />
+        <StatCard label="Resolved" value={stats.RESOLVED} color="green" onClick={() => setStatusFilter("RESOLVED")} />
       </div>
 
       {/* ================= Filters ================= */}
       <div className="bg-white p-4 rounded-xl border flex flex-col md:flex-row gap-4">
         <select
           value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value)
-          }
+          onChange={(e) => setStatusFilter(e.target.value)}
           className="p-2 border rounded-lg w-full md:w-48"
         >
           <option value="ALL">All Status</option>
@@ -158,41 +137,47 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ================= Empty State ================= */}
+      {/* ================= Empty ================= */}
       {filteredTickets.length === 0 && (
         <div className="bg-white rounded-xl border py-20 text-center text-gray-500">
-          <p className="text-lg font-medium">
-            No tickets found
-          </p>
-          <p className="text-sm">
-            Try adjusting filters or create a new ticket
-          </p>
+          No tickets found
         </div>
       )}
 
-      {/* ================= Ticket List ================= */}
-      <div className="grid gap-4">
+      {/* ================= Ticket Cards ================= */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTickets.map((ticket) => (
           <div
             key={ticket._id}
-            onClick={() =>
-              router.push(
-                `/dashboard/tickets/${ticket._id}`
-              )
-            }
-            className="bg-white border rounded-xl p-5 cursor-pointer hover:shadow-md transition"
+            onClick={() => router.push(`/dashboard/tickets/${ticket._id}`)}
+            className="bg-white rounded-xl border hover:shadow-lg transition cursor-pointer overflow-hidden"
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold">
+            {/* Images */}
+            {ticket.images?.length > 0 && (
+              <div className="grid grid-cols-3 gap-1 h-32 overflow-hidden">
+                {ticket.images.slice(0, 3).map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt="ticket"
+                    className="object-cover w-full h-full"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Content */}
+            <div className="p-5 space-y-2">
+              <div className="flex justify-between items-start">
+                <h2 className="font-semibold text-lg line-clamp-2">
                   {ticket.title}
                 </h2>
-                <p className="text-sm text-gray-500">
-                  {new Date(ticket.createdAt).toLocaleString()}
-                </p>
+                <StatusBadge status={ticket.status} />
               </div>
 
-              <StatusBadge status={ticket.status} />
+              <p className="text-sm text-gray-500">
+                {new Date(ticket.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
         ))}
@@ -217,12 +202,8 @@ function StatCard({ label, value, color, onClick }) {
       onClick={onClick}
       className={`cursor-pointer rounded-xl p-5 border hover:shadow transition ${colors[color]}`}
     >
-      <p className="text-sm font-medium">
-        {label}
-      </p>
-      <p className="text-3xl font-bold">
-        {value}
-      </p>
+      <p className="text-sm font-medium">{label}</p>
+      <p className="text-3xl font-bold">{value}</p>
     </div>
   );
 }
@@ -235,11 +216,7 @@ function StatusBadge({ status }) {
   };
 
   return (
-    <span
-      className={`px-3 py-1 text-xs font-medium rounded-full ${
-        styles[status] || "bg-gray-100 text-gray-700"
-      }`}
-    >
+    <span className={`px-3 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
       {status}
     </span>
   );
