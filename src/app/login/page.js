@@ -8,14 +8,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    });
-  };
+  const res = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
+
+  if (res?.error) {
+    alert(res.error);
+  } else {
+    window.location.href = "/dashboard";
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
