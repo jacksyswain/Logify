@@ -14,19 +14,30 @@ export default function TicketDetailPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState("");
+
   const textareaRef = useRef(null);
 
-  /* ================= Fetch ================= */
+  /* ================================
+     Fetch Ticket
+  ================================ */
   useEffect(() => {
     if (!id) return;
 
-    fetch(`/api/tickets/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchTicket = async () => {
+      try {
+        const res = await fetch(`/api/tickets/${id}`);
+        const data = await res.json();
+
         setTicket(data);
-        setDraft(data.descriptionMarkdown);
+        setDraft(data.descriptionMarkdown || "");
+      } catch (err) {
+        console.error("Failed to load ticket", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchTicket();
   }, [id]);
 
   const canEdit =
@@ -34,22 +45,29 @@ export default function TicketDetailPage() {
     (session.user.role === "ADMIN" ||
       session.user.role === "TECHNICIAN");
 
-  /* ================= Save Markdown ================= */
+  /* ================================
+     Save Markdown
+  ================================ */
   const saveMarkdown = async () => {
     await fetch(`/api/tickets/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ descriptionMarkdown: draft }),
+      body: JSON.stringify({
+        descriptionMarkdown: draft,
+      }),
     });
 
     setTicket((prev) => ({
       ...prev,
       descriptionMarkdown: draft,
     }));
+
     setIsEditing(false);
   };
 
-  /* ================= Status Change ================= */
+  /* ================================
+     Change Status
+  ================================ */
   const changeStatus = async (status) => {
     const res = await fetch(`/api/tickets/${id}`, {
       method: "PATCH",
@@ -61,7 +79,9 @@ export default function TicketDetailPage() {
     setTicket(data.ticket);
   };
 
-  /* ================= Markdown Toolbar ================= */
+  /* ================================
+     Markdown Toolbar
+  ================================ */
   const applyMarkdown = (before, after = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -77,16 +97,36 @@ export default function TicketDetailPage() {
         after +
         draft.slice(end)
     );
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = start + before.length;
+      textarea.selectionEnd = end + before.length;
+    }, 0);
   };
 
+  /* ================================
+     States
+  ================================ */
   if (loading) {
     return (
-      <div className="p-10 text-center text-gray-500">
+      <div className="flex items-center justify-center h-64 text-gray-500">
         Loading ticket…
       </div>
     );
   }
 
+  if (!ticket) {
+    return (
+      <div className="p-6 text-red-500">
+        Ticket not found
+      </div>
+    );
+  }
+
+  /* ================================
+     UI
+  ================================ */
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       {/* Header */}
@@ -119,8 +159,10 @@ export default function TicketDetailPage() {
 
       {/* Description */}
       <div className="bg-white border rounded-xl p-6 space-y-4">
-        <div className="flex justify-between">
-          <h2 className="font-semibold">Description</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold">
+            Description
+          </h2>
 
           {canEdit && !isEditing && (
             <button
@@ -134,6 +176,7 @@ export default function TicketDetailPage() {
 
         {isEditing ? (
           <>
+            {/* Toolbar */}
             <div className="flex gap-2">
               <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
                 Bold
@@ -146,22 +189,26 @@ export default function TicketDetailPage() {
               </ToolbarButton>
             </div>
 
+            {/* Editor + Preview */}
             <div className="grid md:grid-cols-2 gap-4">
               <textarea
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                className="border rounded p-3 font-mono text-sm"
-                rows={10}
+                rows={12}
+                className="w-full border rounded p-3 font-mono text-sm"
               />
 
-              <div className="border rounded p-3 overflow-auto prose max-w-none">
-                <ReactMarkdown>
-                  {draft}
-                </ReactMarkdown>
+              <div className="border rounded p-4 overflow-auto">
+                <div className="prose max-w-none">
+                  <ReactMarkdown>
+                    {draft}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
 
+            {/* Actions */}
             <div className="flex gap-3">
               <button
                 onClick={saveMarkdown}
@@ -170,7 +217,10 @@ export default function TicketDetailPage() {
                 Save
               </button>
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setDraft(ticket.descriptionMarkdown);
+                  setIsEditing(false);
+                }}
                 className="px-4 py-2 border rounded"
               >
                 Cancel
@@ -198,7 +248,9 @@ export default function TicketDetailPage() {
   );
 }
 
-/* ================= Components ================= */
+/* ================================
+   Components
+================================ */
 
 function StatusButton({ label, onClick }) {
   return (
@@ -216,7 +268,7 @@ function ToolbarButton({ children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="px-3 py-1 border rounded text-sm"
+      className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
     >
       {children}
     </button>
