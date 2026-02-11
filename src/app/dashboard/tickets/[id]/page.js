@@ -31,7 +31,7 @@ export default function TicketDetailPage() {
         setTicket(data);
         setDraft(data.descriptionMarkdown || "");
       } catch (err) {
-        console.error("Failed to fetch ticket", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -39,6 +39,30 @@ export default function TicketDetailPage() {
 
     fetchTicket();
   }, [id]);
+
+  /* ================================
+     Update status
+  ================================ */
+  const updateStatus = async (status) => {
+    try {
+      setUpdating(true);
+
+      await fetch(`/api/tickets/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      setTicket((prev) => ({
+        ...prev,
+        status,
+      }));
+    } catch (err) {
+      console.error("Failed to update status", err);
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   /* ================================
      Save markdown
@@ -62,7 +86,7 @@ export default function TicketDetailPage() {
 
       setIsEditing(false);
     } catch (err) {
-      console.error("Failed to update ticket", err);
+      console.error(err);
     } finally {
       setUpdating(false);
     }
@@ -79,20 +103,13 @@ export default function TicketDetailPage() {
     const end = textarea.selectionEnd;
     const selected = draft.slice(start, end);
 
-    const newText =
+    setDraft(
       draft.slice(0, start) +
-      before +
-      selected +
-      after +
-      draft.slice(end);
-
-    setDraft(newText);
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = start + before.length;
-      textarea.selectionEnd = end + before.length;
-    }, 0);
+        before +
+        selected +
+        after +
+        draft.slice(end)
+    );
   };
 
   if (loading) {
@@ -104,11 +121,7 @@ export default function TicketDetailPage() {
   }
 
   if (!ticket) {
-    return (
-      <div className="p-6 text-red-500">
-        Ticket not found
-      </div>
-    );
+    return <div className="p-6 text-red-500">Ticket not found</div>;
   }
 
   const canEdit =
@@ -119,14 +132,35 @@ export default function TicketDetailPage() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       {/* ================= Header ================= */}
-      <div className="bg-white border rounded-xl p-6">
-        <h1 className="text-2xl font-bold">
-          {ticket.title}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Created on{" "}
-          {new Date(ticket.createdAt).toLocaleString()}
-        </p>
+      <div className="bg-white border rounded-xl p-6 space-y-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold">
+              {ticket.title}
+            </h1>
+            <p className="text-sm text-gray-500">
+              Created {new Date(ticket.createdAt).toLocaleString()}
+            </p>
+          </div>
+
+          <StatusBadge status={ticket.status} />
+        </div>
+
+        {/* ================= Status Actions ================= */}
+        {canEdit && (
+          <div className="flex gap-3">
+            <StatusButton
+              label="Mark Down"
+              disabled={ticket.status !== "OPEN" || updating}
+              onClick={() => updateStatus("MARKED_DOWN")}
+            />
+            <StatusButton
+              label="Resolve"
+              disabled={ticket.status === "RESOLVED" || updating}
+              onClick={() => updateStatus("RESOLVED")}
+            />
+          </div>
+        )}
       </div>
 
       {/* ================= Description ================= */}
@@ -148,57 +182,39 @@ export default function TicketDetailPage() {
 
         {isEditing ? (
           <>
-            {/* ================= Toolbar ================= */}
+            {/* Toolbar */}
             <div className="flex flex-wrap gap-2 border-b pb-3">
-              <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
-                Bold
-              </ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("## ")}>
-                Heading
-              </ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
-                Inline Code
-              </ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("**", "**")}>Bold</ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("## ")}>Heading</ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("`", "`")}>Code</ToolbarButton>
               <ToolbarButton onClick={() => applyMarkdown("\n```js\n", "\n```\n")}>
                 Code Block
               </ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("- ")}>
-                List
-              </ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("> ")}>
-                Quote
-              </ToolbarButton>
             </div>
 
-            {/* ================= Editor + Preview ================= */}
+            {/* Editor + Preview */}
             <div className="grid md:grid-cols-2 gap-4">
               <textarea
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={14}
-                className="w-full border rounded-lg p-3 font-mono text-sm focus:outline-none focus:ring"
+                className="w-full border rounded-lg p-3 font-mono text-sm"
               />
 
-              <div className="border rounded-lg p-4 overflow-auto bg-gray-50">
-                <div className="prose max-w-none">
-                  <ReactMarkdown>
-                    {draft || "_Nothing to preview_"}
-                  </ReactMarkdown>
-                </div>
+              <div className="border rounded-lg p-4 bg-gray-50 prose max-w-none">
+                <ReactMarkdown>{draft}</ReactMarkdown>
               </div>
             </div>
 
-            {/* ================= Actions ================= */}
-            <div className="flex gap-3 pt-2">
+            {/* Actions */}
+            <div className="flex gap-3">
               <button
                 onClick={saveMarkdown}
-                disabled={updating}
-                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                className="px-4 py-2 bg-black text-white rounded-lg"
               >
-                {updating ? "Saving…" : "Save"}
+                Save
               </button>
-
               <button
                 onClick={() => {
                   setDraft(ticket.descriptionMarkdown);
@@ -213,7 +229,7 @@ export default function TicketDetailPage() {
         ) : (
           <article className="prose max-w-none">
             <ReactMarkdown>
-              {ticket.descriptionMarkdown || "_No description provided_"}
+              {ticket.descriptionMarkdown || "_No description_"}
             </ReactMarkdown>
           </article>
         )}
@@ -223,8 +239,39 @@ export default function TicketDetailPage() {
 }
 
 /* ================================
-   Toolbar Button
+   Components
 ================================ */
+
+function StatusBadge({ status }) {
+  const styles = {
+    OPEN: "bg-blue-100 text-blue-700",
+    MARKED_DOWN: "bg-yellow-100 text-yellow-700",
+    RESOLVED: "bg-green-100 text-green-700",
+  };
+
+  return (
+    <span className={`px-3 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
+      {status}
+    </span>
+  );
+}
+
+function StatusButton({ label, onClick, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-4 py-2 rounded-lg text-sm border transition ${
+        disabled
+          ? "opacity-50 cursor-not-allowed"
+          : "hover:bg-gray-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function ToolbarButton({ children, onClick }) {
   return (
     <button
