@@ -1,16 +1,17 @@
 import mongoose from "mongoose";
 
-const CommentSchema = new mongoose.Schema(
+const StatusHistorySchema = new mongoose.Schema(
   {
-    message: {
+    status: {
       type: String,
+      enum: ["OPEN", "MARKED_DOWN", "RESOLVED"],
       required: true,
     },
-    author: {
+    changedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    createdAt: {
+    changedAt: {
       type: Date,
       default: Date.now,
     },
@@ -18,23 +19,23 @@ const CommentSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const StatusHistorySchema = new mongoose.Schema(
-  {
-    status: String,
-    changedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    changedAt: Date,
-  },
-  { _id: false }
-);
-
 const TicketSchema = new mongoose.Schema(
   {
-    title: String,
-    descriptionMarkdown: String,
-    images: [String],
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    descriptionMarkdown: {
+      type: String,
+      required: true,
+    },
+
+    images: {
+      type: [String],
+      default: [],
+    },
 
     status: {
       type: String,
@@ -45,18 +46,35 @@ const TicketSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
 
-    statusHistory: [StatusHistorySchema],
+    // ✅ THIS WAS MISSING
+    markedDownBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
-    // ✅ NEW
-    comments: {
-      type: [CommentSchema],
+    markedDownAt: {
+      type: Date,
+      default: null,
+    },
+
+    // ✅ Activity timeline
+    statusHistory: {
+      type: [StatusHistorySchema],
       default: [],
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+// ✅ Performance indexes (important for SaaS)
+TicketSchema.index({ status: 1 });
+TicketSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Ticket ||
   mongoose.model("Ticket", TicketSchema);

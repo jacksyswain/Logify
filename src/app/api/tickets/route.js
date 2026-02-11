@@ -9,14 +9,11 @@ import Ticket from "@/models/Ticket";
 ===================================================== */
 export async function POST(req) {
   try {
-    // 1️⃣ Get session
+    // 1️⃣ Session check
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return Response.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return Response.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // 2️⃣ Role check
@@ -24,15 +21,11 @@ export async function POST(req) {
       session.user.role !== "ADMIN" &&
       session.user.role !== "TECHNICIAN"
     ) {
-      return Response.json(
-        { message: "Forbidden" },
-        { status: 403 }
-      );
+      return Response.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    // 3️⃣ Parse request body
-    const { title, descriptionMarkdown, images = [] } =
-      await req.json();
+    // 3️⃣ Parse body
+    const { title, descriptionMarkdown, images = [] } = await req.json();
 
     if (!title || !descriptionMarkdown) {
       return Response.json(
@@ -44,13 +37,23 @@ export async function POST(req) {
     // 4️⃣ Connect DB
     await connectDB();
 
-    // 5️⃣ Create ticket
+    // 5️⃣ Create ticket with INITIAL ACTIVITY
     const ticket = await Ticket.create({
       title,
       descriptionMarkdown,
       images,
       status: "OPEN",
       createdBy: session.user.id,
+      markedDownBy: null,
+
+      // ✅ IMPORTANT: initial activity
+      statusHistory: [
+        {
+          status: "OPEN",
+          changedBy: session.user.id,
+          changedAt: new Date(),
+        },
+      ],
     });
 
     return Response.json(
@@ -75,7 +78,7 @@ export async function POST(req) {
 ===================================================== */
 export async function GET() {
   try {
-    // 1️⃣ Optional session (visitors allowed)
+    // 1️⃣ Optional session
     const session = await getServerSession(authOptions);
 
     // 2️⃣ Connect DB
@@ -87,24 +90,23 @@ export async function GET() {
       .populate("createdBy", "name email role")
       .populate("markedDownBy", "name email role");
 
-    // 4️⃣ Public (visitor) response
+    // 4️⃣ Public users → limited fields
     if (!session) {
-      const publicTickets = tickets.map((ticket) => ({
-        _id: ticket._id,
-        title: ticket.title,
-        descriptionMarkdown: ticket.descriptionMarkdown,
-        images: ticket.images,
-        status: ticket.status,
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
-      }));
-
-      return Response.json(publicTickets, {
-        status: 200,
-      });
+      return Response.json(
+        tickets.map((t) => ({
+          _id: t._id,
+          title: t.title,
+          descriptionMarkdown: t.descriptionMarkdown,
+          images: t.images,
+          status: t.status,
+          createdAt: t.createdAt,
+          updatedAt: t.updatedAt,
+        })),
+        { status: 200 }
+      );
     }
 
-    // 5️⃣ Logged-in users get full data
+    // 5️⃣ Authenticated users → full data
     return Response.json(tickets, { status: 200 });
   } catch (error) {
     console.error("GET /api/tickets error:", error);
