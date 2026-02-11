@@ -1,17 +1,16 @@
 import mongoose from "mongoose";
 
-const StatusHistorySchema = new mongoose.Schema(
+const CommentSchema = new mongoose.Schema(
   {
-    status: {
+    message: {
       type: String,
-      enum: ["OPEN", "MARKED_DOWN", "RESOLVED"],
       required: true,
     },
-    changedBy: {
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    changedAt: {
+    createdAt: {
       type: Date,
       default: Date.now,
     },
@@ -19,22 +18,23 @@ const StatusHistorySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const StatusHistorySchema = new mongoose.Schema(
+  {
+    status: String,
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    changedAt: Date,
+  },
+  { _id: false }
+);
+
 const TicketSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-    },
-
-    descriptionMarkdown: {
-      type: String,
-      required: true,
-    },
-
-    images: {
-      type: [String],
-      default: [],
-    },
+    title: String,
+    descriptionMarkdown: String,
+    images: [String],
 
     status: {
       type: String,
@@ -47,8 +47,11 @@ const TicketSchema = new mongoose.Schema(
       ref: "User",
     },
 
-    statusHistory: {
-      type: [StatusHistorySchema],
+    statusHistory: [StatusHistorySchema],
+
+    // ✅ NEW
+    comments: {
+      type: [CommentSchema],
       default: [],
     },
   },
