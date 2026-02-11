@@ -1,49 +1,92 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-3xl w-full px-6">
-        {/* Card */}
-        <div className="bg-white border rounded-2xl shadow-sm p-10 text-center space-y-6">
-          {/* Logo / Title */}
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
-            Logify
-          </h1>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        {/* Hero */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left */}
+          <div className="space-y-8">
+            {/* Badge */}
+            <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-black text-white">
+              🚧 Maintenance Tracking Platform
+            </span>
 
-          {/* Tagline */}
-          <p className="text-lg text-gray-600 max-w-xl mx-auto">
-            A modern maintenance logging system to track issues,
-            attach evidence, and manage resolutions with clarity.
-          </p>
+            {/* Heading */}
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+              Track maintenance issues
+              <br />
+              <span className="text-gray-500">
+                with clarity & control
+              </span>
+            </h1>
 
-          {/* Feature bullets */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-sm text-gray-600">
-            <Feature text="📝 Markdown-based logs" />
-            <Feature text="📸 Image evidence upload" />
-            <Feature text="🔐 Role-based access" />
+            {/* Subheading */}
+            <p className="text-lg text-gray-600 max-w-xl">
+              Logify helps teams document issues, attach evidence,
+              collaborate on fixes, and track resolutions — all in one
+              clean, reliable system.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-4">
+              <a
+                href="/dashboard"
+                className="px-6 py-3 rounded-lg bg-black text-white font-medium hover:bg-gray-900 transition"
+              >
+                Open Dashboard
+              </a>
+
+              <a
+                href="/login"
+                className="px-6 py-3 rounded-lg border font-medium hover:bg-gray-50 transition"
+              >
+                Sign in
+              </a>
+            </div>
+
+            {/* Trust text */}
+            <p className="text-sm text-gray-400">
+              Built for internal teams, technicians & administrators
+            </p>
           </div>
 
-          {/* CTA buttons */}
-          <div className="flex justify-center gap-4 pt-6">
-            <a
-              href="/dashboard"
-              className="px-6 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition"
-            >
-              View Dashboard
-            </a>
+          {/* Right – Feature Card */}
+          <div className="relative">
+            <div className="bg-white border rounded-3xl shadow-lg p-8 space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Why teams choose Logify
+              </h3>
 
-            <a
-              href="/login"
-              className="px-6 py-2.5 border rounded-lg hover:bg-gray-50 transition"
-            >
-              Login
-            </a>
+              <div className="space-y-4">
+                <Feature
+                  title="Structured issue tracking"
+                  text="Markdown-powered logs with clear status flows."
+                />
+                <Feature
+                  title="Visual evidence"
+                  text="Upload, reorder, and review image proof."
+                />
+                <Feature
+                  title="Role-based control"
+                  text="Admins, technicians, and viewers — clearly separated."
+                />
+                <Feature
+                  title="Audit & accountability"
+                  text="Track actions, status changes, and activity history."
+                />
+              </div>
+            </div>
+
+            {/* Decorative blur */}
+            <div className="absolute -z-10 -bottom-10 -right-10 w-72 h-72 bg-black/5 rounded-full blur-3xl" />
           </div>
         </div>
 
-        {/* Footer text */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Built for teams that care about reliable maintenance tracking
-        </p>
+        {/* Footer */}
+        <footer className="mt-32 border-t pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-gray-400">
+          <p>© {new Date().getFullYear()} Logify</p>
+          <p>Designed for modern maintenance teams</p>
+        </footer>
       </div>
     </main>
   );
@@ -52,10 +95,18 @@ export default function Home() {
 /* ================================
    Feature Item
 ================================ */
-function Feature({ text }) {
+function Feature({ title, text }) {
   return (
-    <div className="border rounded-lg p-3 bg-gray-50">
-      {text}
+    <div className="flex gap-4">
+      <div className="w-2 h-2 mt-2 rounded-full bg-black" />
+      <div>
+        <p className="font-medium text-gray-900">
+          {title}
+        </p>
+        <p className="text-sm text-gray-600">
+          {text}
+        </p>
+      </div>
     </div>
   );
 }
