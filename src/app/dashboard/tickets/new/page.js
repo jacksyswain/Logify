@@ -16,8 +16,10 @@ export default function CreateTicketPage() {
 
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   /* ===============================
      Role Guard
@@ -64,10 +66,10 @@ export default function CreateTicketPage() {
   };
 
   /* ===============================
-     Image Upload (Cloudinary)
+     Upload Helpers
   =============================== */
-  const handleImageUpload = async (file) => {
-    if (!file) return;
+  const uploadFile = async (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
 
     setUploading(true);
 
@@ -89,12 +91,34 @@ export default function CreateTicketPage() {
     }
   };
 
+  const handleFiles = (files) => {
+    [...files].forEach(uploadFile);
+  };
+
   const removeImage = (url) => {
     setImages((prev) => prev.filter((img) => img !== url));
   };
 
   /* ===============================
-     Submit Ticket
+     Drag Events
+  =============================== */
+  const onDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const onDragLeave = () => {
+    setDragActive(false);
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  /* ===============================
+     Submit
   =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -126,9 +150,7 @@ export default function CreateTicketPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">
-          Create Ticket
-        </h1>
+        <h1 className="text-3xl font-bold">Create Ticket</h1>
         <p className="text-sm text-gray-500">
           Log a new maintenance issue
         </p>
@@ -140,9 +162,7 @@ export default function CreateTicketPage() {
       >
         {/* Title */}
         <div>
-          <label className="text-sm font-medium">
-            Title
-          </label>
+          <label className="text-sm font-medium">Title</label>
           <input
             type="text"
             placeholder="Short summary of the issue"
@@ -153,13 +173,12 @@ export default function CreateTicketPage() {
           />
         </div>
 
-        {/* Markdown Editor */}
+        {/* Markdown */}
         <div className="space-y-3">
           <label className="text-sm font-medium">
             Description
           </label>
 
-          {/* Toolbar */}
           <div className="flex gap-2">
             <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
               Bold
@@ -177,17 +196,12 @@ export default function CreateTicketPage() {
             >
               Code Block
             </ToolbarButton>
-            <ToolbarButton onClick={() => applyMarkdown("- ")}>
-              List
-            </ToolbarButton>
           </div>
 
-          {/* Editor + Preview */}
           <div className="grid md:grid-cols-2 gap-4">
             <textarea
               ref={textareaRef}
               className="h-64 p-3 border rounded-lg font-mono text-sm"
-              placeholder="Write description in markdown..."
               value={description}
               onChange={(e) =>
                 setDescription(e.target.value)
@@ -195,7 +209,7 @@ export default function CreateTicketPage() {
               required
             />
 
-            <div className="h-64 p-4 border rounded-lg overflow-auto bg-gray-50">
+            <div className="h-64 p-4 border rounded-lg bg-gray-50 overflow-auto">
               <div className="prose max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {description || "_Live preview…_"}
@@ -205,29 +219,48 @@ export default function CreateTicketPage() {
           </div>
         </div>
 
-        {/* Image Upload */}
-        <div className="space-y-2">
+        {/* Drag & Drop Upload */}
+        <div>
           <label className="text-sm font-medium">
             Attach Images
           </label>
 
+          <div
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onClick={() => fileInputRef.current.click()}
+            className={`mt-2 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
+              dragActive
+                ? "border-black bg-gray-100"
+                : "border-gray-300"
+            }`}
+          >
+            <p className="text-sm text-gray-600">
+              Drag & drop images here, or{" "}
+              <span className="underline">browse</span>
+            </p>
+            {uploading && (
+              <p className="mt-2 text-xs text-gray-500">
+                Uploading…
+              </p>
+            )}
+          </div>
+
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
+            hidden
             onChange={(e) =>
-              handleImageUpload(e.target.files[0])
+              handleFiles(e.target.files)
             }
           />
 
-          {uploading && (
-            <p className="text-sm text-gray-500">
-              Uploading image…
-            </p>
-          )}
-
-          {/* Image Preview */}
+          {/* Preview */}
           {images.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-3">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
               {images.map((img) => (
                 <div
                   key={img}
@@ -258,9 +291,7 @@ export default function CreateTicketPage() {
             disabled={submitting}
             className="px-6 py-2 bg-black text-white rounded-lg disabled:opacity-50"
           >
-            {submitting
-              ? "Creating…"
-              : "Create Ticket"}
+            {submitting ? "Creating…" : "Create Ticket"}
           </button>
         </div>
       </form>
@@ -269,9 +300,8 @@ export default function CreateTicketPage() {
 }
 
 /* ===============================
-   Components
+   Toolbar Button
 =============================== */
-
 function ToolbarButton({ children, onClick }) {
   return (
     <button
