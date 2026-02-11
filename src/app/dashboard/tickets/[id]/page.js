@@ -11,90 +11,57 @@ export default function TicketDetailPage() {
 
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState("");
-
   const textareaRef = useRef(null);
 
-  /* ================================
-     Fetch ticket
-  ================================ */
+  /* ================= Fetch ================= */
   useEffect(() => {
     if (!id) return;
 
-    const fetchTicket = async () => {
-      try {
-        const res = await fetch(`/api/tickets/${id}`);
-        const data = await res.json();
+    fetch(`/api/tickets/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
         setTicket(data);
-        setDraft(data.descriptionMarkdown || "");
-      } catch (err) {
-        console.error(err);
-      } finally {
+        setDraft(data.descriptionMarkdown);
         setLoading(false);
-      }
-    };
-
-    fetchTicket();
+      });
   }, [id]);
 
-  /* ================================
-     Update status
-  ================================ */
-  const updateStatus = async (status) => {
-    try {
-      setUpdating(true);
+  const canEdit =
+    session &&
+    (session.user.role === "ADMIN" ||
+      session.user.role === "TECHNICIAN");
 
-      await fetch(`/api/tickets/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      setTicket((prev) => ({
-        ...prev,
-        status,
-      }));
-    } catch (err) {
-      console.error("Failed to update status", err);
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  /* ================================
-     Save markdown
-  ================================ */
+  /* ================= Save Markdown ================= */
   const saveMarkdown = async () => {
-    try {
-      setUpdating(true);
+    await fetch(`/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ descriptionMarkdown: draft }),
+    });
 
-      await fetch(`/api/tickets/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          descriptionMarkdown: draft,
-        }),
-      });
-
-      setTicket((prev) => ({
-        ...prev,
-        descriptionMarkdown: draft,
-      }));
-
-      setIsEditing(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUpdating(false);
-    }
+    setTicket((prev) => ({
+      ...prev,
+      descriptionMarkdown: draft,
+    }));
+    setIsEditing(false);
   };
 
-  /* ================================
-     Markdown helpers
-  ================================ */
+  /* ================= Status Change ================= */
+  const changeStatus = async (status) => {
+    const res = await fetch(`/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    const data = await res.json();
+    setTicket(data.ticket);
+  };
+
+  /* ================= Markdown Toolbar ================= */
   const applyMarkdown = (before, after = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -114,66 +81,51 @@ export default function TicketDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="p-10 text-center text-gray-500">
         Loading ticket…
       </div>
     );
   }
 
-  if (!ticket) {
-    return <div className="p-6 text-red-500">Ticket not found</div>;
-  }
-
-  const canEdit =
-    session &&
-    (session.user.role === "ADMIN" ||
-      session.user.role === "TECHNICIAN");
-
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      {/* ================= Header ================= */}
-      <div className="bg-white border rounded-xl p-6 space-y-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold">
-              {ticket.title}
-            </h1>
-            <p className="text-sm text-gray-500">
-              Created {new Date(ticket.createdAt).toLocaleString()}
-            </p>
-          </div>
-
-          <StatusBadge status={ticket.status} />
-        </div>
-
-        {/* ================= Status Actions ================= */}
-        {canEdit && (
-          <div className="flex gap-3">
-            <StatusButton
-              label="Mark Down"
-              disabled={ticket.status !== "OPEN" || updating}
-              onClick={() => updateStatus("MARKED_DOWN")}
-            />
-            <StatusButton
-              label="Resolve"
-              disabled={ticket.status === "RESOLVED" || updating}
-              onClick={() => updateStatus("RESOLVED")}
-            />
-          </div>
-        )}
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">
+          {ticket.title}
+        </h1>
+        <p className="text-sm text-gray-500">
+          Created {new Date(ticket.createdAt).toLocaleString()}
+        </p>
       </div>
 
-      {/* ================= Description ================= */}
+      {/* Status Actions */}
+      {canEdit && (
+        <div className="flex gap-3">
+          <StatusButton
+            label="Open"
+            onClick={() => changeStatus("OPEN")}
+          />
+          <StatusButton
+            label="Marked Down"
+            onClick={() => changeStatus("MARKED_DOWN")}
+          />
+          <StatusButton
+            label="Resolved"
+            onClick={() => changeStatus("RESOLVED")}
+          />
+        </div>
+      )}
+
+      {/* Description */}
       <div className="bg-white border rounded-xl p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="font-semibold text-lg">
-            Description
-          </h2>
+        <div className="flex justify-between">
+          <h2 className="font-semibold">Description</h2>
 
           {canEdit && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm underline"
             >
               Edit
             </button>
@@ -182,90 +134,77 @@ export default function TicketDetailPage() {
 
         {isEditing ? (
           <>
-            {/* Toolbar */}
-            <div className="flex flex-wrap gap-2 border-b pb-3">
-              <ToolbarButton onClick={() => applyMarkdown("**", "**")}>Bold</ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("## ")}>Heading</ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("`", "`")}>Code</ToolbarButton>
-              <ToolbarButton onClick={() => applyMarkdown("\n```js\n", "\n```\n")}>
-                Code Block
+            <div className="flex gap-2">
+              <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
+                Bold
+              </ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("## ")}>
+                Heading
+              </ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
+                Code
               </ToolbarButton>
             </div>
 
-            {/* Editor + Preview */}
             <div className="grid md:grid-cols-2 gap-4">
               <textarea
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                rows={14}
-                className="w-full border rounded-lg p-3 font-mono text-sm"
+                className="border rounded p-3 font-mono text-sm"
+                rows={10}
               />
 
-              <div className="border rounded-lg p-4 bg-gray-50 prose max-w-none">
-                <ReactMarkdown>{draft}</ReactMarkdown>
+              <div className="border rounded p-3 overflow-auto prose max-w-none">
+                <ReactMarkdown>
+                  {draft}
+                </ReactMarkdown>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3">
               <button
                 onClick={saveMarkdown}
-                className="px-4 py-2 bg-black text-white rounded-lg"
+                className="px-4 py-2 bg-black text-white rounded"
               >
                 Save
               </button>
               <button
-                onClick={() => {
-                  setDraft(ticket.descriptionMarkdown);
-                  setIsEditing(false);
-                }}
-                className="px-4 py-2 border rounded-lg"
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 border rounded"
               >
                 Cancel
               </button>
             </div>
           </>
         ) : (
-          <article className="prose max-w-none">
+          <div className="prose max-w-none">
             <ReactMarkdown>
-              {ticket.descriptionMarkdown || "_No description_"}
+              {ticket.descriptionMarkdown}
             </ReactMarkdown>
-          </article>
+          </div>
         )}
+      </div>
+
+      {/* Activity Timeline */}
+      <div className="bg-white border rounded-xl p-6">
+        <h2 className="font-semibold mb-4">
+          Activity
+        </h2>
+
+        <ActivityTimeline history={ticket.statusHistory} />
       </div>
     </div>
   );
 }
 
-/* ================================
-   Components
-================================ */
+/* ================= Components ================= */
 
-function StatusBadge({ status }) {
-  const styles = {
-    OPEN: "bg-blue-100 text-blue-700",
-    MARKED_DOWN: "bg-yellow-100 text-yellow-700",
-    RESOLVED: "bg-green-100 text-green-700",
-  };
-
-  return (
-    <span className={`px-3 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
-      {status}
-    </span>
-  );
-}
-
-function StatusButton({ label, onClick, disabled }) {
+function StatusButton({ label, onClick }) {
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
-      className={`px-4 py-2 rounded-lg text-sm border transition ${
-        disabled
-          ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-gray-50"
-      }`}
+      className="px-4 py-2 border rounded-lg hover:bg-gray-50"
     >
       {label}
     </button>
@@ -275,11 +214,42 @@ function StatusButton({ label, onClick, disabled }) {
 function ToolbarButton({ children, onClick }) {
   return (
     <button
-      onClick={onClick}
       type="button"
-      className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
+      onClick={onClick}
+      className="px-3 py-1 border rounded text-sm"
     >
       {children}
     </button>
+  );
+}
+
+function ActivityTimeline({ history }) {
+  if (!history || history.length === 0) {
+    return (
+      <p className="text-sm text-gray-500">
+        No activity yet
+      </p>
+    );
+  }
+
+  return (
+    <div className="relative pl-6 space-y-6">
+      <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200" />
+
+      {history.map((item, i) => (
+        <div key={i} className="relative flex gap-4">
+          <div className="w-4 h-4 bg-black rounded-full mt-1" />
+          <div className="bg-gray-50 border rounded-lg p-4 w-full">
+            <p className="font-medium text-sm">
+              Status → {item.status}
+            </p>
+            <p className="text-xs text-gray-500">
+              {item.changedBy?.name || "System"} •{" "}
+              {new Date(item.changedAt).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

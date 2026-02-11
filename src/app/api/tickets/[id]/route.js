@@ -2,29 +2,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Ticket from "@/models/Ticket";
-import mongoose from "mongoose";
 
-/* =====================================================
+/* ================================
    GET /api/tickets/:id
-===================================================== */
+================================ */
 export async function GET(req, context) {
   try {
-    // ✅ MUST unwrap params like this
-    const { id } = await context.params;
+    const { id } = context.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return Response.json(
-        { message: "Invalid ticket ID" },
-        { status: 400 }
-      );
-    }
-
-    const session = await getServerSession(authOptions);
     await connectDB();
 
     const ticket = await Ticket.findById(id)
-      .populate("createdBy", "name email role")
-      .populate("markedDownBy", "name email role");
+      .populate("createdBy", "name email")
+      .populate("statusHistory.changedBy", "name email role");
 
     if (!ticket) {
       return Response.json(
@@ -33,37 +23,22 @@ export async function GET(req, context) {
       );
     }
 
-    // Visitor
-    if (!session) {
-      return Response.json(
-        {
-          _id: ticket._id,
-          title: ticket.title,
-          descriptionMarkdown: ticket.descriptionMarkdown,
-          images: ticket.images,
-          status: ticket.status,
-          createdAt: ticket.createdAt,
-          updatedAt: ticket.updatedAt,
-        },
-        { status: 200 }
-      );
-    }
-
     return Response.json(ticket, { status: 200 });
   } catch (error) {
-    console.error("GET /api/tickets/[id] error:", error);
+    console.error("GET ticket error:", error);
     return Response.json(
-      { message: "Internal Server Error" },
+      { message: "Failed to fetch ticket" },
       { status: 500 }
     );
   }
 }
 
-/* =====================================================
+/* ================================
    PATCH /api/tickets/:id
-===================================================== */
+================================ */
 export async function PATCH(req, context) {
   try {
+    const { id } = context.params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -83,18 +58,8 @@ export async function PATCH(req, context) {
       );
     }
 
-    // ✅ unwrap params
-    const { id } = await context.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return Response.json(
-        { message: "Invalid ticket ID" },
-        { status: 400 }
-      );
-    }
-
-    const { title, descriptionMarkdown, status } =
-      await req.json();
+    const body = await req.json();
+    const { descriptionMarkdown, status } = body;
 
     await connectDB();
 
@@ -107,17 +72,20 @@ export async function PATCH(req, context) {
       );
     }
 
-    if (title) ticket.title = title;
-    if (descriptionMarkdown)
+    /* Update description */
+    if (descriptionMarkdown) {
       ticket.descriptionMarkdown = descriptionMarkdown;
+    }
 
-    if (status) {
+    /* Update status + history */
+    if (status && status !== ticket.status) {
       ticket.status = status;
 
-      if (status === "MARKED_DOWN" || status === "RESOLVED") {
-        ticket.markedDownBy = session.user.id;
-        ticket.markedDownAt = new Date();
-      }
+      ticket.statusHistory.push({
+        status,
+        changedBy: session.user.id,
+        changedAt: new Date(),
+      });
     }
 
     await ticket.save();
@@ -127,9 +95,9 @@ export async function PATCH(req, context) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("PATCH /api/tickets/[id] error:", error);
+    console.error("PATCH ticket error:", error);
     return Response.json(
-      { message: "Internal Server Error" },
+      { message: "Update failed" },
       { status: 500 }
     );
   }
