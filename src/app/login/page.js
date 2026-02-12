@@ -100,6 +100,16 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
+          <div className="text-right">
+            <a
+              href="/forgot-password"
+              className="text-sm text-indigo-600 hover:underline"
+            >
+              Forgot password?
+            </a>
+          </div>
+
+
           <div className="flex items-center gap-3 text-xs text-gray-400">
             <div className="flex-1 h-px bg-gray-200" />
             Secure login

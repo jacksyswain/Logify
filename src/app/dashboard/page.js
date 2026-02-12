@@ -103,13 +103,13 @@ export default function DashboardPage() {
 
             {(session?.user.role === "ADMIN" ||
               session?.user.role === "TECHNICIAN") && (
-              <button
-                onClick={() => router.push("/dashboard/tickets/new")}
-                className="px-5 py-2 rounded-lg bg-white text-black font-medium hover:bg-gray-200 transition"
-              >
-                + New Ticket
-              </button>
-            )}
+                <button
+                  onClick={() => router.push("/dashboard/tickets/new")}
+                  className="px-5 py-2 rounded-lg bg-white text-black font-medium hover:bg-gray-200 transition"
+                >
+                  + New Ticket
+                </button>
+              )}
           </div>
         </div>
 
@@ -175,19 +175,16 @@ export default function DashboardPage() {
               className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:shadow-2xl hover:border-white/20 transition"
             >
               {/* Images */}
-              {ticket.images?.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1 h-36 overflow-hidden">
-                  {ticket.images.slice(0, 3).map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      alt="ticket"
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                    />
-                  ))}
+              {ticket.images?.[0] ? (
+                <div className="relative w-full h-44 overflow-hidden">
+                  <img
+                    src={ticket.images[0]}
+                    alt="ticket"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
               ) : (
-                <div className="h-36 bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center text-gray-400 text-sm">
+                <div className="h-44 bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center text-gray-400 text-sm">
                   No Image
                 </div>
               )}
