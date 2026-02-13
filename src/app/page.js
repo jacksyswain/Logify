@@ -180,52 +180,51 @@ function Feature({ title, text }) {
 /* ================= IMAGES ================= */
 const WORKING_IMAGES = [
   {
-    // HVAC / Air conditioner maintenance
-    src: "https://images.unsplash.com/photo-1581092160607-ee67b3b41b4a?auto=format&fit=crop&w=1200&q=80",
+    // ✅ CLEAR HVAC / AC OUTDOOR UNIT
+    src: "https://images.unsplash.com/photo-1604335399105-2f7f4b1e8e43?auto=format&fit=crop&w=1200&q=80",
     title: "AC unit not cooling",
     meta: "Ticket #1042 • OPEN",
   },
   {
-    // Server racks / data center wiring
-    src: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=1200&q=80",
+    // ✅ DATA CENTER / SERVER RACKS
+    src: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1200&q=80",
     title: "Server rack wiring",
     meta: "Ticket #1031 • MARKED DOWN",
   },
   {
-    // Industrial control panel / machinery
-    src: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80",
+    // ✅ INDUSTRIAL CONTROL PANEL
+    src: "https://images.unsplash.com/photo-1581091215367-59ab6b07b1d4?auto=format&fit=crop&w=1200&q=80",
     title: "Control panel damage",
     meta: "Ticket #1028 • OPEN",
   },
   {
-    // Mechanical / oil / industrial leak
-    src: "https://images.unsplash.com/photo-1581091870627-3d6e6f1c33d1?auto=format&fit=crop&w=1200&q=80",
+    // ✅ MECHANICAL / OIL / INDUSTRIAL LEAK
+    src: "https://images.unsplash.com/photo-1597008641621-9a7d4f0c2a73?auto=format&fit=crop&w=1200&q=80",
     title: "Oil leakage detected",
     meta: "Ticket #1019 • RESOLVED",
   },
   {
-    // Before repair inspection shot
-    src: "https://images.unsplash.com/photo-1581091870685-7c86c40e5f21?auto=format&fit=crop&w=1200&q=80",
+    // ✅ BEFORE-REPAIR INSPECTION (TECHNICIAN CHECKING)
+    src: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80",
     title: "Before repair inspection",
     meta: "Ticket #1011",
   },
   {
-    // After fix verification
-    src: "https://images.unsplash.com/photo-1581092919535-7146c9a9c89f?auto=format&fit=crop&w=1200&q=80",
+    // ✅ AFTER FIX / VERIFICATION WORK
+    src: "https://images.unsplash.com/photo-1581093458416-0f2b8b0f5e92?auto=format&fit=crop&w=1200&q=80",
     title: "Post-fix verification",
     meta: "Ticket #1011 • RESOLVED",
   },
   {
-    // Asset tag / serial number / close-up
-    src: "https://images.unsplash.com/photo-1581093458791-9a6a2a1b47b5?auto=format&fit=crop&w=1200&q=80",
+    // ✅ SERIAL NUMBER / ASSET TAG CLOSE-UP
+    src: "https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?auto=format&fit=crop&w=1200&q=80",
     title: "Serial number snapshot",
     meta: "Ticket #0994",
   },
   {
-    // Electrical board / wiring issue
-    src: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=1200&q=80",
+    // ✅ ELECTRICAL BOARD / PANEL WITH WIRES
+    src: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=1200&q=80",
     title: "Electrical board issue",
     meta: "Ticket #0988 • OPEN",
   },
 ];
-
