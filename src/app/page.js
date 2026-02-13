@@ -179,52 +179,12 @@ function Feature({ title, text }) {
 
 /* ================= IMAGES ================= */
 const WORKING_IMAGES = [
-  {
-    // ✅ CLEAR HVAC / AC OUTDOOR UNIT
-    src: "https://images.unsplash.com/photo-1604335399105-2f7f4b1e8e43?auto=format&fit=crop&w=1200&q=80",
-    title: "AC unit not cooling",
-    meta: "Ticket #1042 • OPEN",
-  },
-  {
-    // ✅ DATA CENTER / SERVER RACKS
-    src: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1200&q=80",
-    title: "Server rack wiring",
-    meta: "Ticket #1031 • MARKED DOWN",
-  },
-  {
-    // ✅ INDUSTRIAL CONTROL PANEL
-    src: "https://images.unsplash.com/photo-1581091215367-59ab6b07b1d4?auto=format&fit=crop&w=1200&q=80",
-    title: "Control panel damage",
-    meta: "Ticket #1028 • OPEN",
-  },
-  {
-    // ✅ MECHANICAL / OIL / INDUSTRIAL LEAK
-    src: "https://images.unsplash.com/photo-1597008641621-9a7d4f0c2a73?auto=format&fit=crop&w=1200&q=80",
-    title: "Oil leakage detected",
-    meta: "Ticket #1019 • RESOLVED",
-  },
-  {
-    // ✅ BEFORE-REPAIR INSPECTION (TECHNICIAN CHECKING)
-    src: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80",
-    title: "Before repair inspection",
-    meta: "Ticket #1011",
-  },
-  {
-    // ✅ AFTER FIX / VERIFICATION WORK
-    src: "https://images.unsplash.com/photo-1581093458416-0f2b8b0f5e92?auto=format&fit=crop&w=1200&q=80",
-    title: "Post-fix verification",
-    meta: "Ticket #1011 • RESOLVED",
-  },
-  {
-    // ✅ SERIAL NUMBER / ASSET TAG CLOSE-UP
-    src: "https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?auto=format&fit=crop&w=1200&q=80",
-    title: "Serial number snapshot",
-    meta: "Ticket #0994",
-  },
-  {
-    // ✅ ELECTRICAL BOARD / PANEL WITH WIRES
-    src: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=1200&q=80",
-    title: "Electrical board issue",
-    meta: "Ticket #0988 • OPEN",
-  },
+  { src: "https://picsum.photos/id/1018/1200/800", title: "AC unit not cooling", meta: "Ticket #1042 • OPEN" },
+  { src: "https://picsum.photos/id/1067/1200/800", title: "Server rack wiring", meta: "Ticket #1031 • MARKED DOWN" },
+  { src: "https://picsum.photos/id/1039/1200/800", title: "Control panel damage", meta: "Ticket #1028 • OPEN" },
+  { src: "https://picsum.photos/id/1024/1200/800", title: "Oil leakage detected", meta: "Ticket #1019 • RESOLVED" },
+  { src: "https://picsum.photos/id/1040/1200/800", title: "Before repair inspection", meta: "Ticket #1011" },
+  { src: "https://picsum.photos/id/1041/1200/800", title: "Post-fix verification", meta: "Ticket #1011 • RESOLVED" },
+  { src: "https://picsum.photos/id/1071/1200/800", title: "Serial number snapshot", meta: "Ticket #0994" },
+  { src: "https://picsum.photos/id/1056/1200/800", title: "Electrical board issue", meta: "Ticket #0988 • OPEN" },
 ];
