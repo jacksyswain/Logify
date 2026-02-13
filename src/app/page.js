@@ -1,11 +1,23 @@
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+
 export default function Home() {
+  const [activeImage, setActiveImage] = useState(null);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
 
         {/* ================= HERO ================= */}
-        <section className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center"
+        >
           {/* Left */}
           <div className="space-y-6 sm:space-y-7">
             <span className="inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-sm w-fit">
@@ -56,30 +68,24 @@ export default function Home() {
                 Why teams use Logify
               </h3>
 
-              <Feature
-                title="Structured issue tracking"
-                text="Every issue follows a clear lifecycle with full history."
-              />
-              <Feature
-                title="Visual evidence"
-                text="Upload, review, and verify fixes with image proof."
-              />
-              <Feature
-                title="Role-based control"
-                text="Admins, technicians, and viewers — clearly defined."
-              />
-              <Feature
-                title="Audit & accountability"
-                text="Every action is logged for transparency."
-              />
+              <Feature title="Structured issue tracking" text="Every issue follows a clear lifecycle with full history." />
+              <Feature title="Visual evidence" text="Upload, review, and verify fixes with image proof." />
+              <Feature title="Role-based control" text="Admins, technicians, and viewers — clearly defined." />
+              <Feature title="Audit & accountability" text="Every action is logged for transparency." />
             </div>
 
             <div className="absolute -z-10 -bottom-10 -right-10 w-72 sm:w-80 h-72 sm:h-80 bg-gradient-to-br from-indigo-400/20 to-cyan-400/20 rounded-full blur-3xl" />
           </div>
-        </section>
+        </motion.section>
 
         {/* ================= EVIDENCE INBOX ================= */}
-        <section className="mt-28 sm:mt-36">
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          className="mt-28 sm:mt-36"
+        >
           <div className="max-w-3xl mb-8 sm:mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
               Evidence inbox
@@ -92,9 +98,10 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
             {WORKING_IMAGES.map((img, i) => (
-              <div
+              <button
                 key={i}
-                className="group relative rounded-2xl overflow-hidden border bg-white shadow-sm hover:shadow-lg transition"
+                onClick={() => setActiveImage(img)}
+                className="group relative rounded-2xl overflow-hidden border bg-white shadow-sm hover:shadow-lg transition focus:outline-none"
               >
                 <img
                   src={img.src}
@@ -104,7 +111,7 @@ export default function Home() {
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 opacity-0 group-hover:opacity-100 transition" />
 
-                <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition">
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition text-left">
                   <p className="text-xs font-medium truncate">
                     {img.title}
                   </p>
@@ -112,10 +119,10 @@ export default function Home() {
                     {img.meta}
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* ================= FOOTER ================= */}
         <footer className="mt-32 sm:mt-40 border-t pt-6 sm:pt-8 flex flex-col md:flex-row gap-3 items-center justify-between text-sm text-gray-400">
@@ -130,6 +137,29 @@ export default function Home() {
           </p>
         </footer>
       </div>
+
+      {/* ================= LIGHTBOX ================= */}
+      {activeImage && (
+        <div
+          onClick={() => setActiveImage(null)}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-5xl w-full"
+          >
+            <img
+              src={activeImage.src}
+              alt={activeImage.title}
+              className="w-full max-h-[80vh] object-contain rounded-xl"
+            />
+            <div className="mt-4 text-center text-white">
+              <p className="text-sm font-medium">{activeImage.title}</p>
+              <p className="text-xs text-white/70">{activeImage.meta}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -149,12 +179,12 @@ function Feature({ title, text }) {
 
 /* ================= IMAGES ================= */
 const WORKING_IMAGES = [
-  { src: "https://picsum.photos/id/1018/600/400", title: "AC unit not cooling", meta: "Ticket #1042 • OPEN" },
-  { src: "https://picsum.photos/id/1067/600/400", title: "Server rack wiring", meta: "Ticket #1031 • MARKED DOWN" },
-  { src: "https://picsum.photos/id/1039/600/400", title: "Control panel damage", meta: "Ticket #1028 • OPEN" },
-  { src: "https://picsum.photos/id/1024/600/400", title: "Oil leakage detected", meta: "Ticket #1019 • RESOLVED" },
-  { src: "https://picsum.photos/id/1040/600/400", title: "Before repair inspection", meta: "Ticket #1011" },
-  { src: "https://picsum.photos/id/1041/600/400", title: "Post-fix verification", meta: "Ticket #1011 • RESOLVED" },
-  { src: "https://picsum.photos/id/1071/600/400", title: "Serial number snapshot", meta: "Ticket #0994" },
-  { src: "https://picsum.photos/id/1056/600/400", title: "Electrical board issue", meta: "Ticket #0988 • OPEN" },
+  { src: "https://picsum.photos/id/1018/1200/800", title: "AC unit not cooling", meta: "Ticket #1042 • OPEN" },
+  { src: "https://picsum.photos/id/1067/1200/800", title: "Server rack wiring", meta: "Ticket #1031 • MARKED DOWN" },
+  { src: "https://picsum.photos/id/1039/1200/800", title: "Control panel damage", meta: "Ticket #1028 • OPEN" },
+  { src: "https://picsum.photos/id/1024/1200/800", title: "Oil leakage detected", meta: "Ticket #1019 • RESOLVED" },
+  { src: "https://picsum.photos/id/1040/1200/800", title: "Before repair inspection", meta: "Ticket #1011" },
+  { src: "https://picsum.photos/id/1041/1200/800", title: "Post-fix verification", meta: "Ticket #1011 • RESOLVED" },
+  { src: "https://picsum.photos/id/1071/1200/800", title: "Serial number snapshot", meta: "Ticket #0994" },
+  { src: "https://picsum.photos/id/1056/1200/800", title: "Electrical board issue", meta: "Ticket #0988 • OPEN" },
 ];
