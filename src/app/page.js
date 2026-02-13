@@ -179,12 +179,53 @@ function Feature({ title, text }) {
 
 /* ================= IMAGES ================= */
 const WORKING_IMAGES = [
-  { src: "https://picsum.photos/id/1018/1200/800", title: "AC unit not cooling", meta: "Ticket #1042 • OPEN" },
-  { src: "https://picsum.photos/id/1067/1200/800", title: "Server rack wiring", meta: "Ticket #1031 • MARKED DOWN" },
-  { src: "https://picsum.photos/id/1039/1200/800", title: "Control panel damage", meta: "Ticket #1028 • OPEN" },
-  { src: "https://picsum.photos/id/1024/1200/800", title: "Oil leakage detected", meta: "Ticket #1019 • RESOLVED" },
-  { src: "https://picsum.photos/id/1040/1200/800", title: "Before repair inspection", meta: "Ticket #1011" },
-  { src: "https://picsum.photos/id/1041/1200/800", title: "Post-fix verification", meta: "Ticket #1011 • RESOLVED" },
-  { src: "https://picsum.photos/id/1071/1200/800", title: "Serial number snapshot", meta: "Ticket #0994" },
-  { src: "https://picsum.photos/id/1056/1200/800", title: "Electrical board issue", meta: "Ticket #0988 • OPEN" },
+  {
+    // HVAC / Air conditioner maintenance
+    src: "https://images.unsplash.com/photo-1581092160607-ee67b3b41b4a?auto=format&fit=crop&w=1200&q=80",
+    title: "AC unit not cooling",
+    meta: "Ticket #1042 • OPEN",
+  },
+  {
+    // Server racks / data center wiring
+    src: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=1200&q=80",
+    title: "Server rack wiring",
+    meta: "Ticket #1031 • MARKED DOWN",
+  },
+  {
+    // Industrial control panel / machinery
+    src: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80",
+    title: "Control panel damage",
+    meta: "Ticket #1028 • OPEN",
+  },
+  {
+    // Mechanical / oil / industrial leak
+    src: "https://images.unsplash.com/photo-1581091870627-3d6e6f1c33d1?auto=format&fit=crop&w=1200&q=80",
+    title: "Oil leakage detected",
+    meta: "Ticket #1019 • RESOLVED",
+  },
+  {
+    // Before repair inspection shot
+    src: "https://images.unsplash.com/photo-1581091870685-7c86c40e5f21?auto=format&fit=crop&w=1200&q=80",
+    title: "Before repair inspection",
+    meta: "Ticket #1011",
+  },
+  {
+    // After fix verification
+    src: "https://images.unsplash.com/photo-1581092919535-7146c9a9c89f?auto=format&fit=crop&w=1200&q=80",
+    title: "Post-fix verification",
+    meta: "Ticket #1011 • RESOLVED",
+  },
+  {
+    // Asset tag / serial number / close-up
+    src: "https://images.unsplash.com/photo-1581093458791-9a6a2a1b47b5?auto=format&fit=crop&w=1200&q=80",
+    title: "Serial number snapshot",
+    meta: "Ticket #0994",
+  },
+  {
+    // Electrical board / wiring issue
+    src: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=1200&q=80",
+    title: "Electrical board issue",
+    meta: "Ticket #0988 • OPEN",
+  },
 ];
+
