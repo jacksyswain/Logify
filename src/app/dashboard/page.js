@@ -81,57 +81,37 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto p-6 space-y-10 text-white">
 
         {/* ================= Header ================= */}
-<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-  <div>
-    <h1 className="text-4xl font-bold tracking-tight">
-      Dashboard
-    </h1>
-    <p className="text-sm text-gray-400">
-      Track and manage maintenance tickets
-    </p>
-  </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">
+              Dashboard
+            </h1>
+            <p className="text-sm text-gray-400">
+              Track and manage maintenance tickets
+            </p>
+          </div>
 
-  <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3">
+            {session?.user.role === "ADMIN" && (
+              <button
+                onClick={() => router.push("/dashboard/admin/users")}
+                className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
+              >
+                Manage Users
+              </button>
+            )}
 
-    {/* 🔥 ADMIN OPTIONS */}
-    {session?.user.role === "ADMIN" && (
-      <>
-        <button
-          onClick={() => router.push("/dashboard/admin/users")}
-          className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
-        >
-          Manage Users
-        </button>
-
-        <button
-          onClick={() => router.push("/dashboard/admin/analytics")}
-          className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
-        >
-          Analytics
-        </button>
-
-        <button
-          onClick={() => router.push("/dashboard/admin/audit-logs")}
-          className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
-        >
-          Audit Logs
-        </button>
-      </>
-    )}
-
-    {/* 🔥 ADMIN + TECHNICIAN */}
-    {(session?.user.role === "ADMIN" ||
-      session?.user.role === "TECHNICIAN") && (
-      <button
-        onClick={() => router.push("/dashboard/tickets/new")}
-        className="px-5 py-2 rounded-lg bg-white text-black font-medium hover:bg-gray-200 transition"
-      >
-        + New Ticket
-      </button>
-    )}
-  </div>
-</div>
-
+            {(session?.user.role === "ADMIN" ||
+              session?.user.role === "TECHNICIAN") && (
+                <button
+                  onClick={() => router.push("/dashboard/tickets/new")}
+                  className="px-5 py-2 rounded-lg bg-white text-black font-medium hover:bg-gray-200 transition"
+                >
+                  + New Ticket
+                </button>
+              )}
+          </div>
+        </div>
 
         {/* ================= Stats Cards ================= */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
