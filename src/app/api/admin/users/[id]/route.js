@@ -5,7 +5,7 @@ import User from "@/models/User";
 
 /* =====================================
    PATCH /api/admin/users/:id
-   Admin: update user role
+   Admin: update user role OR status
 ===================================== */
 export async function PATCH(req, { params }) {
   try {
@@ -20,14 +20,8 @@ export async function PATCH(req, { params }) {
     }
 
     const { id } = params;
-    const { role } = await req.json();
-
-    if (!role || !["ADMIN", "TECHNICIAN"].includes(role)) {
-      return Response.json(
-        { message: "Invalid role" },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    const { role, isActive } = body;
 
     await connectDB();
 
@@ -40,31 +34,59 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Optional safety: prevent demoting yourself
-    if (user._id.toString() === session.user.id) {
+    // 🚫 Prevent admin from changing own role
+    if (role && user._id.toString() === session.user.id) {
       return Response.json(
         { message: "You cannot change your own role" },
         { status: 400 }
       );
     }
 
-    user.role = role;
+    /* ===============================
+       Update Role (if provided)
+    =============================== */
+    if (role) {
+      if (!["ADMIN", "TECHNICIAN"].includes(role)) {
+        return Response.json(
+          { message: "Invalid role" },
+          { status: 400 }
+        );
+      }
+
+      user.role = role;
+    }
+
+    /* ===============================
+       Update Status (if provided)
+    =============================== */
+    if (typeof isActive === "boolean") {
+      if (user._id.toString() === session.user.id) {
+        return Response.json(
+          { message: "You cannot disable your own account" },
+          { status: 400 }
+        );
+      }
+
+      user.isActive = isActive;
+    }
+
     await user.save();
 
     return Response.json(
       {
-        message: "Role updated successfully",
+        message: "User updated successfully",
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
+          isActive: user.isActive,
         },
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Update Role Error:", error);
+    console.error("Update User Error:", error);
     return Response.json(
       { message: "Internal Server Error" },
       { status: 500 }
