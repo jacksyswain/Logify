@@ -44,78 +44,80 @@ export default function UsersListPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Users</h1>
+  <div className="max-w-7xl mx-auto p-6 space-y-6 text-white">
+    
+    {/* Header */}
+    <div className="flex justify-between items-center">
+      <h1 className="text-3xl font-bold tracking-tight">
+        Users
+      </h1>
 
-        <button
-          onClick={() =>
-            router.push("/dashboard/admin/users/new")
-          }
-          className="px-4 py-2 bg-black text-white rounded"
-        >
-          + Create User
-        </button>
-      </div>
-
-      {/* Users Table */}
-      <div className="overflow-x-auto border rounded">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Role</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Created</th>
-              <th className="p-3 text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.map((user) => (
-              <tr
-                key={user._id}
-                className="border-t hover:bg-blue-800 "
-              >
-                <td className="p-3">{user.name}</td>
-                <td className="p-3">{user.email}</td>
-
-                {/* Role Editor */}
-                <td className="p-3">
-                  <RoleEditor
-                    user={user}
-                    refresh={fetchUsers}
-                    currentAdminId={session.user.id}
-                  />
-                </td>
-
-                {/* Status */}
-                <td className="p-3">
-                  <StatusBadge active={user.isActive} />
-                </td>
-
-                {/* Created */}
-                <td className="p-3">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
-
-                {/* Enable / Disable */}
-                <td className="p-3">
-                  <ToggleUserStatus
-                    user={user}
-                    refresh={fetchUsers}
-                    currentAdminId={session.user.id}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <button
+        onClick={() =>
+          router.push("/dashboard/admin/users/new")
+        }
+        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+      >
+        + Create User
+      </button>
     </div>
-  );
+
+    {/* Users Table */}
+    <div className="overflow-x-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
+      <table className="w-full text-sm">
+        <thead className="bg-white/5 border-b border-white/10 text-gray-300">
+          <tr>
+            <th className="p-4 text-left">Name</th>
+            <th className="p-4 text-left">Email</th>
+            <th className="p-4 text-left">Role</th>
+            <th className="p-4 text-left">Status</th>
+            <th className="p-4 text-left">Created</th>
+            <th className="p-4 text-left">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody className="divide-y divide-white/5">
+          {users.map((user) => (
+            <tr
+              key={user._id}
+              className="transition hover:bg-white/5"
+            >
+              <td className="p-4">{user.name}</td>
+              <td className="p-4 text-gray-400">
+                {user.email}
+              </td>
+
+              <td className="p-4">
+                <RoleEditor
+                  user={user}
+                  refresh={fetchUsers}
+                  currentAdminId={session.user.id}
+                />
+              </td>
+
+              <td className="p-4">
+                <StatusBadge active={user.isActive} />
+              </td>
+
+              <td className="p-4 text-gray-400">
+                {new Date(user.createdAt).toLocaleDateString()}
+              </td>
+
+              <td className="p-4">
+                <ToggleUserStatus
+                  user={user}
+                  refresh={fetchUsers}
+                  currentAdminId={session.user.id}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 }
 
 /* ================================
