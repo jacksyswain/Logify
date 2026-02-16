@@ -154,137 +154,143 @@ export default function AuditLogsPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-6">
-        {/* ================= Header ================= */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold">
-              Audit Logs
-            </h1>
-            <p className="text-sm text-gray-500">
-              Security & administrative activity
-            </p>
-          </div>
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-6">
 
-          <button
-            onClick={exportCSV}
-            className="px-4 py-2 border rounded-lg bg-white hover:bg-gray-50"
-          >
-            Export CSV
-          </button>
+      {/* ================= Header ================= */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">
+            Audit Logs
+          </h1>
+          <p className="text-sm text-gray-400">
+            Security & administrative activity
+          </p>
         </div>
 
-        {/* ================= Filters ================= */}
-        <div className="bg-white border rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            placeholder="Search logs…"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="border rounded-lg p-2 text-sm"
-          />
+        <button
+          onClick={exportCSV}
+          className="px-4 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 transition"
+        >
+          Export CSV
+        </button>
+      </div>
 
-          <select
-            value={actionFilter}
-            onChange={(e) => {
-              setActionFilter(e.target.value);
-              setPage(1);
-            }}
-            className="border rounded-lg p-2 text-sm"
-          >
-            <option value="ALL">All Actions</option>
-            <option value="CREATE">CREATE</option>
-            <option value="UPDATE">UPDATE</option>
-            <option value="DELETE">DELETE</option>
-            <option value="LOGIN">LOGIN</option>
-          </select>
+      {/* ================= Filters ================= */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input
+          placeholder="Search logs…"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="bg-black/60 border border-white/20 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="border rounded-lg p-2 text-sm"
-          />
+        <select
+          value={actionFilter}
+          onChange={(e) => {
+            setActionFilter(e.target.value);
+            setPage(1);
+          }}
+          className="bg-black/60 border border-white/20 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="ALL">All Actions</option>
+          <option value="CREATE">CREATE</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+          <option value="LOGIN">LOGIN</option>
+        </select>
 
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="border rounded-lg p-2 text-sm"
-          />
-        </div>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="bg-black/60 border border-white/20 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-        {/* ================= Table ================= */}
-        <div className="bg-white border rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left">Admin</th>
-                <th className="px-6 py-3 text-left">Action</th>
-                <th className="px-6 py-3 text-left">Target</th>
-                <th className="px-6 py-3 text-left">Time</th>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="bg-black/60 border border-white/20 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {/* ================= Table ================= */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-white/5 border-b border-white/10 text-gray-300">
+            <tr>
+              <th className="px-6 py-3 text-left">Admin</th>
+              <th className="px-6 py-3 text-left">Action</th>
+              <th className="px-6 py-3 text-left">Target</th>
+              <th className="px-6 py-3 text-left">Time</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-white/5">
+            {paginatedLogs.map((log) => (
+              <tr
+                key={log._id}
+                className="transition hover:bg-white/5"
+              >
+                <td className="px-6 py-4">
+                  <div className="font-medium">
+                    {log.actor?.name || "System"}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {log.actor?.email}
+                  </div>
+                </td>
+
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 rounded-md text-xs bg-blue-500/20 text-blue-300">
+                    {log.action}
+                  </span>
+                </td>
+
+                <td className="px-6 py-4 text-gray-300">
+                  {log.targetType}
+                </td>
+
+                <td className="px-6 py-4 text-gray-400">
+                  {new Date(log.createdAt).toLocaleString()}
+                </td>
               </tr>
-            </thead>
+            ))}
+          </tbody>
+        </table>
 
-            <tbody className="divide-y">
-              {paginatedLogs.map((log) => (
-                <tr key={log._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium">
-                      {log.actor?.name || "System"}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {log.actor?.email}
-                    </div>
-                  </td>
+        {/* ================= Pagination ================= */}
+        <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 bg-white/5">
+          <span className="text-sm text-gray-400">
+            Page {page} of {totalPages}
+          </span>
 
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-md text-xs bg-blue-50 text-blue-700">
-                      {log.action}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    {log.targetType}
-                  </td>
-
-                  <td className="px-6 py-4 text-gray-500">
-                    {new Date(log.createdAt).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* ================= Pagination ================= */}
-          <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50">
-            <span className="text-sm text-gray-500">
-              Page {page} of {totalPages}
-            </span>
-
-            <div className="flex gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-40"
-              >
-                Prev
-              </button>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
+          <div className="flex gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-3 py-1 border border-white/20 rounded disabled:opacity-40 hover:bg-white/10 transition"
+            >
+              Prev
+            </button>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-1 border border-white/20 rounded disabled:opacity-40 hover:bg-white/10 transition"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
