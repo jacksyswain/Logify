@@ -148,7 +148,6 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -171,6 +170,7 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
 
+        {/* MAIN */}
         <div>
           <p className="px-3 text-xs font-semibold text-gray-500 uppercase mb-2">
             Main
@@ -190,6 +190,36 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
             </SidebarLink>
           )}
         </div>
+
+        {/* 🔥 ADMIN SECTION ADDED */}
+        {session?.user.role === "ADMIN" && (
+          <div>
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase mb-2">
+              Admin
+            </p>
+
+            <SidebarLink
+              href="/dashboard/admin/users"
+              active={pathname.startsWith("/dashboard/admin/users")}
+            >
+              Manage Users
+            </SidebarLink>
+
+            <SidebarLink
+              href="/dashboard/admin/analytics"
+              active={pathname.startsWith("/dashboard/admin/analytics")}
+            >
+              Analytics
+            </SidebarLink>
+
+            <SidebarLink
+              href="/dashboard/admin/audit-logs"
+              active={pathname.startsWith("/dashboard/admin/audit-logs")}
+            >
+              Audit Logs
+            </SidebarLink>
+          </div>
+        )}
       </nav>
 
       {/* Account */}
