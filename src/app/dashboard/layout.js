@@ -189,15 +189,8 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
               New Ticket
             </SidebarLink>
           )}
-        </div>
-
-        {/* 🔥 ADMIN SECTION ADDED */}
-        {session?.user.role === "ADMIN" && (
+          {session?.user.role === "ADMIN" && (
           <div>
-            <p className="px-3 text-xs font-semibold text-gray-500 uppercase mb-2">
-              Admin
-            </p>
-
             <SidebarLink
               href="/dashboard/admin/users"
               active={pathname.startsWith("/dashboard/admin/users")}
@@ -220,6 +213,7 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
             </SidebarLink>
           </div>
         )}
+        </div>
       </nav>
 
       {/* Account */}
