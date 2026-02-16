@@ -11,113 +11,126 @@ export default function UsersListPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Admin guard
+  /* ================================
+     Fetch Users (SAFE HOOK ORDER)
+  ================================= */
+  useEffect(() => {
+    if (status === "authenticated" && session?.user.role === "ADMIN") {
+      fetchUsers();
+    }
+  }, [status]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================================
+     Guards
+  ================================= */
   if (status === "loading") {
-    return <p className="p-6">Checking access...</p>;
+    return <p className="p-6 text-gray-400">Checking access...</p>;
   }
 
   if (!session || session.user.role !== "ADMIN") {
     return (
-      <p className="p-6 text-red-600">
+      <p className="p-6 text-red-500 font-medium">
         Access denied. Admins only.
       </p>
     );
   }
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    const res = await fetch("/api/admin/users");
-    const data = await res.json();
-    setUsers(data);
-    setLoading(false);
-  };
-
   if (loading) {
     return (
-      <div className="p-6 text-gray-500">
+      <div className="p-6 text-gray-400">
         Loading users...
       </div>
     );
   }
 
   return (
-  <div className="max-w-7xl mx-auto p-6 space-y-6 text-white">
-    
-    {/* Header */}
-    <div className="flex justify-between items-center">
-      <h1 className="text-3xl font-bold tracking-tight">
-        Users
-      </h1>
+    <div className="max-w-7xl mx-auto p-6 space-y-6 text-white">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Users
+        </h1>
 
-      <button
-        onClick={() =>
-          router.push("/dashboard/admin/users/new")
-        }
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-      >
-        + Create User
-      </button>
-    </div>
+        <button
+          onClick={() =>
+            router.push("/dashboard/admin/users/new")
+          }
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+        >
+          + Create User
+        </button>
+      </div>
 
-    {/* Users Table */}
-    <div className="overflow-x-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
-      <table className="w-full text-sm">
-        <thead className="bg-white/5 border-b border-white/10 text-gray-300">
-          <tr>
-            <th className="p-4 text-left">Name</th>
-            <th className="p-4 text-left">Email</th>
-            <th className="p-4 text-left">Role</th>
-            <th className="p-4 text-left">Status</th>
-            <th className="p-4 text-left">Created</th>
-            <th className="p-4 text-left">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody className="divide-y divide-white/5">
-          {users.map((user) => (
-            <tr
-              key={user._id}
-              className="transition hover:bg-white/5"
-            >
-              <td className="p-4">{user.name}</td>
-              <td className="p-4 text-gray-400">
-                {user.email}
-              </td>
-
-              <td className="p-4">
-                <RoleEditor
-                  user={user}
-                  refresh={fetchUsers}
-                  currentAdminId={session.user.id}
-                />
-              </td>
-
-              <td className="p-4">
-                <StatusBadge active={user.isActive} />
-              </td>
-
-              <td className="p-4 text-gray-400">
-                {new Date(user.createdAt).toLocaleDateString()}
-              </td>
-
-              <td className="p-4">
-                <ToggleUserStatus
-                  user={user}
-                  refresh={fetchUsers}
-                  currentAdminId={session.user.id}
-                />
-              </td>
+      {/* Users Table */}
+      <div className="overflow-x-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
+        <table className="w-full text-sm">
+          <thead className="bg-white/5 border-b border-white/10 text-gray-300">
+            <tr>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Email</th>
+              <th className="p-4 text-left">Role</th>
+              <th className="p-4 text-left">Status</th>
+              <th className="p-4 text-left">Created</th>
+              <th className="p-4 text-left">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
+          </thead>
 
+          <tbody className="divide-y divide-white/5">
+            {users.map((user) => (
+              <tr
+                key={user._id}
+                className="transition hover:bg-white/5"
+              >
+                <td className="p-4 font-medium">
+                  {user.name}
+                </td>
+
+                <td className="p-4 text-gray-400">
+                  {user.email}
+                </td>
+
+                <td className="p-4">
+                  <RoleEditor
+                    user={user}
+                    refresh={fetchUsers}
+                    currentAdminId={session.user.id}
+                  />
+                </td>
+
+                <td className="p-4">
+                  <StatusBadge active={user.isActive} />
+                </td>
+
+                <td className="p-4 text-gray-400">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </td>
+
+                <td className="p-4">
+                  <ToggleUserStatus
+                    user={user}
+                    refresh={fetchUsers}
+                    currentAdminId={session.user.id}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 /* ================================
@@ -155,7 +168,7 @@ function RoleEditor({ user, refresh, currentAdminId }) {
       <select
         value={role}
         onChange={(e) => setRole(e.target.value)}
-        className="border rounded px-2 py-1 text-sm"
+        className="bg-black border border-white/20 rounded px-2 py-1 text-sm text-white"
       >
         <option value="ADMIN">ADMIN</option>
         <option value="TECHNICIAN">TECHNICIAN</option>
@@ -164,7 +177,7 @@ function RoleEditor({ user, refresh, currentAdminId }) {
       <button
         onClick={updateRole}
         disabled={saving}
-        className="text-xs px-2 py-1 border rounded"
+        className="text-xs px-3 py-1 border border-white/20 rounded hover:bg-white/10 transition"
       >
         {saving ? "Saving..." : "Save"}
       </button>
@@ -210,9 +223,17 @@ function ToggleUserStatus({ user, refresh, currentAdminId }) {
     <button
       onClick={toggleStatus}
       disabled={loading}
-      className="text-xs px-3 py-1 border rounded"
+      className={`text-xs px-3 py-1 rounded transition ${
+        user.isActive
+          ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+          : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+      }`}
     >
-      {user.isActive ? "Disable" : "Enable"}
+      {loading
+        ? "Updating..."
+        : user.isActive
+        ? "Disable"
+        : "Enable"}
     </button>
   );
 }
@@ -223,10 +244,10 @@ function ToggleUserStatus({ user, refresh, currentAdminId }) {
 function StatusBadge({ active }) {
   return (
     <span
-      className={`px-2 py-1 rounded text-xs ${
+      className={`px-3 py-1 rounded-full text-xs font-medium ${
         active
-          ? "bg-green-100 text-green-700"
-          : "bg-red-100 text-red-700"
+          ? "bg-green-500/20 text-green-400"
+          : "bg-red-500/20 text-red-400"
       }`}
     >
       {active ? "ACTIVE" : "DISABLED"}
