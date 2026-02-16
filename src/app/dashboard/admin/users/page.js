@@ -12,7 +12,7 @@ export default function UsersListPage() {
   const [loading, setLoading] = useState(true);
 
   /* ================================
-     Fetch Users (SAFE HOOK ORDER)
+     Fetch Users
   ================================= */
   useEffect(() => {
     if (status === "authenticated" && session?.user.role === "ADMIN") {
@@ -21,27 +21,22 @@ export default function UsersListPage() {
   }, [status]);
 
   const fetchUsers = async () => {
-    try {
-      const res = await fetch("/api/admin/users");
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch("/api/admin/users");
+    const data = await res.json();
+    setUsers(data);
+    setLoading(false);
   };
 
   /* ================================
-     Guards
+     Guards (AFTER hooks)
   ================================= */
   if (status === "loading") {
-    return <p className="p-6 text-gray-400">Checking access...</p>;
+    return <p className="p-6">Checking access...</p>;
   }
 
   if (!session || session.user.role !== "ADMIN") {
     return (
-      <p className="p-6 text-red-500 font-medium">
+      <p className="p-6 text-red-600">
         Access denied. Admins only.
       </p>
     );
@@ -49,7 +44,7 @@ export default function UsersListPage() {
 
   if (loading) {
     return (
-      <div className="p-6 text-gray-400">
+      <div className="p-6 text-gray-500">
         Loading users...
       </div>
     );
