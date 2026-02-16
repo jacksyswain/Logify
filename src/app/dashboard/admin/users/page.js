@@ -77,7 +77,7 @@ export default function UsersListPage() {
             {users.map((user) => (
               <tr
                 key={user._id}
-                className="border-t hover:bg-gray-50"
+                className="border-t hover:bg-blue-800 "
               >
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">{user.email}</td>
