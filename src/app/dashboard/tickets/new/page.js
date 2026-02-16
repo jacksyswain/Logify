@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -18,8 +18,59 @@ export default function CreateTicketPage() {
   const [submitting, setSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  const [recordingField, setRecordingField] = useState(null);
+
+  const recognitionRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  /* ===============================
+     Speech Recognition Setup
+  =============================== */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-IN";
+
+    recognition.onresult = (event) => {
+      const transcript =
+        event.results[event.results.length - 1][0].transcript;
+
+      if (recordingField === "title") {
+        setTitle((prev) => prev + " " + transcript);
+      }
+
+      if (recordingField === "description") {
+        setDescription((prev) => prev + " " + transcript);
+      }
+    };
+
+    recognition.onend = () => {
+      setRecordingField(null);
+    };
+
+    recognitionRef.current = recognition;
+  }, [recordingField]);
+
+  const toggleRecording = (field) => {
+    if (!recognitionRef.current) return;
+
+    if (recordingField === field) {
+      recognitionRef.current.stop();
+      setRecordingField(null);
+    } else {
+      setRecordingField(field);
+      recognitionRef.current.start();
+    }
+  };
 
   /* ===============================
      Role Guard
@@ -145,7 +196,7 @@ export default function CreateTicketPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
-        {/* Header */}
+
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
             New Ticket
@@ -160,18 +211,34 @@ export default function CreateTicketPage() {
           className="bg-white border rounded-2xl shadow-sm"
         >
           <div className="p-8 space-y-10">
+
             {/* Title */}
             <section>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Title
               </label>
-              <input
-                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10"
-                placeholder="Brief summary of the issue"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
+
+              <div className="relative">
+                <input
+                  className="w-full p-3 border rounded-xl pr-12 focus:outline-none focus:ring-2 focus:ring-black/10"
+                  placeholder="Brief summary of the issue"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => toggleRecording("title")}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded ${
+                    recordingField === "title"
+                      ? "bg-red-600 text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  🎙
+                </button>
+              </div>
             </section>
 
             {/* Description */}
@@ -185,35 +252,28 @@ export default function CreateTicketPage() {
                 </span>
               </div>
 
-              {/* Toolbar */}
-              <div className="flex gap-2 flex-wrap bg-gray-50 border rounded-xl p-2">
-                <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
-                  Bold
-                </ToolbarButton>
-                <ToolbarButton onClick={() => applyMarkdown("## ")}>
-                  Heading
-                </ToolbarButton>
-                <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
-                  Code
-                </ToolbarButton>
-                <ToolbarButton
-                  onClick={() =>
-                    applyMarkdown("\n```js\n", "\n```\n")
-                  }
-                >
-                  Code Block
-                </ToolbarButton>
-              </div>
-
-              {/* Editor */}
               <div className="grid lg:grid-cols-2 gap-6">
-                <textarea
-                  ref={textareaRef}
-                  className="h-72 p-4 border rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    className="h-72 p-4 border rounded-xl pr-12 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => toggleRecording("description")}
+                    className={`absolute right-3 top-3 text-xs px-2 py-1 rounded ${
+                      recordingField === "description"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-200"
+                    }`}
+                  >
+                    🎙
+                  </button>
+                </div>
 
                 <div className="h-72 p-4 border rounded-xl bg-gray-50 overflow-auto">
                   <div className="prose max-w-none">
@@ -225,70 +285,8 @@ export default function CreateTicketPage() {
               </div>
             </section>
 
-            {/* Images */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-medium text-gray-700">
-                Attach Images
-              </h2>
-
-              <div
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-                onClick={() => fileInputRef.current.click()}
-                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition ${
-                  dragActive
-                    ? "border-black bg-gray-100"
-                    : "border-gray-300 bg-white"
-                }`}
-              >
-                <p className="text-sm text-gray-600">
-                  Drag & drop images or{" "}
-                  <span className="underline font-medium">
-                    browse
-                  </span>
-                </p>
-                {uploading && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    Uploading…
-                  </p>
-                )}
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) =>
-                  handleFiles(e.target.files)
-                }
-              />
-
-              {images.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                  {images.map((img) => (
-                    <div key={img} className="relative group">
-                      <img
-                        src={img}
-                        className="w-full h-24 object-cover rounded-xl border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(img)}
-                        className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
 
-          {/* Footer */}
           <div className="flex justify-end gap-3 px-8 py-5 border-t bg-gray-50 rounded-b-2xl">
             <button
               type="button"
@@ -311,9 +309,7 @@ export default function CreateTicketPage() {
   );
 }
 
-/* ===============================
-   Toolbar Button
-=============================== */
+/* =============================== */
 function ToolbarButton({ children, onClick }) {
   return (
     <button
