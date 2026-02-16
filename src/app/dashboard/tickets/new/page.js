@@ -94,10 +94,10 @@ export default function CreateTicketPage() {
 
     setDescription(
       description.slice(0, start) +
-      before +
-      selected +
-      after +
-      description.slice(end)
+        before +
+        selected +
+        after +
+        description.slice(end)
     );
 
     setTimeout(() => {
@@ -188,7 +188,7 @@ export default function CreateTicketPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl"
+          className="bg-gradient-to-br from-gray-900/60 to-black/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl"
         >
           <div className="p-10 space-y-12">
 
@@ -207,8 +207,8 @@ export default function CreateTicketPage() {
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-xl transition ${
                     isRecording && activeFieldRef.current === "title"
-                      ? "bg-red-600 text-white"
-                      : "bg-white/10 hover:bg-white/20 text-gray-300"
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-300"
                   }`}
                 >
                   {isRecording && activeFieldRef.current === "title"
@@ -218,7 +218,7 @@ export default function CreateTicketPage() {
               </div>
 
               <input
-                className="w-full p-3.5 border border-white/20 rounded-2xl bg-black text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition"
+                className="w-full p-3.5 border border-white/20 rounded-2xl bg-black/70 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 placeholder="Brief summary of the issue"
                 value={title}
                 onFocus={() => (activeFieldRef.current = "title")}
@@ -230,9 +230,31 @@ export default function CreateTicketPage() {
             {/* Description */}
             <section className="space-y-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-300">
-                  Description
-                </h2>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-sm font-semibold text-gray-300">
+                    Description
+                  </h2>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      activeFieldRef.current = "description";
+                      toggleRecording();
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-xl transition ${
+                      isRecording &&
+                      activeFieldRef.current === "description"
+                        ? "bg-blue-600 text-white"
+                        : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-300"
+                    }`}
+                  >
+                    {isRecording &&
+                    activeFieldRef.current === "description"
+                      ? "Stop 🎙"
+                      : "Voice 🎙"}
+                  </button>
+                </div>
+
                 <span className="text-xs text-gray-500">
                   Markdown supported
                 </span>
@@ -260,7 +282,7 @@ export default function CreateTicketPage() {
               <div className="grid lg:grid-cols-2 gap-6">
                 <textarea
                   ref={textareaRef}
-                  className="h-72 p-4 border border-white/20 rounded-2xl bg-black text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-white/30 transition"
+                  className="h-72 p-4 border border-white/20 rounded-2xl bg-black/70 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   value={description}
                   onFocus={() => (activeFieldRef.current = "description")}
                   onChange={(e) => setDescription(e.target.value)}
@@ -277,68 +299,67 @@ export default function CreateTicketPage() {
               </div>
             </section>
 
-            {/* Images */}
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold text-gray-300">
-                Attach Images
-              </h2>
-
-              <div
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-                onClick={() => fileInputRef.current.click()}
-                className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition ${
-                  dragActive
-                    ? "border-white bg-white/10"
-                    : "border-white/20 bg-white/5 hover:bg-white/10"
-                }`}
-              >
-                <p className="text-sm text-gray-400">
-                  Drag & drop images or{" "}
-                  <span className="underline font-medium">
-                    browse
-                  </span>
-                </p>
-                {uploading && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    Uploading…
-                  </p>
-                )}
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) =>
-                  handleFiles(e.target.files)
-                }
-              />
-
-              {images.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                  {images.map((img) => (
-                    <div key={img} className="relative group">
-                      <img
-                        src={img}
-                        className="w-full h-24 object-cover rounded-2xl border border-white/10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(img)}
-                        className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
+          {/* Images */}
+<section className="space-y-4">
+  <h2 className="text-sm font-semibold text-gray-300">
+    Attach Images
+  </h2>
+
+  <div
+    onDragOver={onDragOver}
+    onDragLeave={onDragLeave}
+    onDrop={onDrop}
+    onClick={() => fileInputRef.current.click()}
+    className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition ${
+      dragActive
+        ? "border-white bg-white/10"
+        : "border-white/20 bg-white/5 hover:bg-white/10"
+    }`}
+  >
+    <p className="text-sm text-gray-400">
+      Drag & drop images or{" "}
+      <span className="underline font-medium">
+        browse
+      </span>
+    </p>
+
+    {uploading && (
+      <p className="mt-2 text-xs text-gray-500">
+        Uploading…
+      </p>
+    )}
+  </div>
+
+  <input
+    ref={fileInputRef}
+    type="file"
+    accept="image/*"
+    multiple
+    hidden
+    onChange={(e) => handleFiles(e.target.files)}
+  />
+
+  {images.length > 0 && (
+    <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+      {images.map((img) => (
+        <div key={img} className="relative group">
+          <img
+            src={img}
+            className="w-full h-24 object-cover rounded-2xl border border-white/10"
+          />
+          <button
+            type="button"
+            onClick={() => removeImage(img)}
+            className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
 
           <div className="flex justify-end gap-3 px-10 py-6 border-t border-white/10 bg-white/5 rounded-b-3xl">
             <button
@@ -351,13 +372,14 @@ export default function CreateTicketPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 text-sm bg-white text-black font-medium rounded-xl hover:bg-gray-200 transition"
+              className="px-6 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition"
             >
               {submitting ? "Creating…" : "Create Ticket"}
             </button>
           </div>
         </form>
       </div>
+      
     </div>
   );
 }
