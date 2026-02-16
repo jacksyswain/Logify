@@ -18,9 +18,11 @@ export default function CreateTicketPage() {
   const [submitting, setSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const [recordingField, setRecordingField] = useState(null);
-
+  /* 🔥 Voice States */
+  const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
+  const activeFieldRef = useRef(null);
+
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -44,31 +46,31 @@ export default function CreateTicketPage() {
       const transcript =
         event.results[event.results.length - 1][0].transcript;
 
-      if (recordingField === "title") {
+      if (activeFieldRef.current === "title") {
         setTitle((prev) => prev + " " + transcript);
       }
 
-      if (recordingField === "description") {
+      if (activeFieldRef.current === "description") {
         setDescription((prev) => prev + " " + transcript);
       }
     };
 
     recognition.onend = () => {
-      setRecordingField(null);
+      setIsRecording(false);
     };
 
     recognitionRef.current = recognition;
-  }, [recordingField]);
+  }, []);
 
-  const toggleRecording = (field) => {
+  const toggleRecording = () => {
     if (!recognitionRef.current) return;
 
-    if (recordingField === field) {
+    if (isRecording) {
       recognitionRef.current.stop();
-      setRecordingField(null);
+      setIsRecording(false);
     } else {
-      setRecordingField(field);
       recognitionRef.current.start();
+      setIsRecording(true);
     }
   };
 
@@ -102,10 +104,10 @@ export default function CreateTicketPage() {
 
     setDescription(
       description.slice(0, start) +
-        before +
-        selected +
-        after +
-        description.slice(end)
+      before +
+      selected +
+      after +
+      description.slice(end)
     );
 
     setTimeout(() => {
@@ -214,66 +216,98 @@ export default function CreateTicketPage() {
 
             {/* Title */}
             <section>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
-              </label>
-
-              <div className="relative">
-                <input
-                  className="w-full p-3 border rounded-xl pr-12 focus:outline-none focus:ring-2 focus:ring-black/10"
-                  placeholder="Brief summary of the issue"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Title
+                </label>
 
                 <button
                   type="button"
-                  onClick={() => toggleRecording("title")}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded ${
-                    recordingField === "title"
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-200"
-                  }`}
+                  onClick={() => {
+                    activeFieldRef.current = "title";
+                    toggleRecording();
+                  }}
+                  className={`px-3 py-1 text-xs rounded-lg ${isRecording && activeFieldRef.current === "title"
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-black"
+                    }`}
                 >
-                  🎙
+                  {isRecording && activeFieldRef.current === "title"
+                    ? "Stop 🎙"
+                    : "Voice 🎙"}
                 </button>
               </div>
+
+              <input
+                className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10"
+                placeholder="Brief summary of the issue"
+                value={title}
+                onFocus={() => (activeFieldRef.current = "title")}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
             </section>
+
 
             {/* Description */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-gray-700">
-                  Description
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-gray-700">
+                    Description
+                  </h2>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      activeFieldRef.current = "description";
+                      toggleRecording();
+                    }}
+                    className={`px-3 py-1 text-xs rounded-lg ${isRecording && activeFieldRef.current === "description"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-200 text-black"
+                      }`}
+                  >
+                    {isRecording && activeFieldRef.current === "description"
+                      ? "Stop 🎙"
+                      : "Voice 🎙"}
+                  </button>
+                </div>
+
                 <span className="text-xs text-gray-400">
                   Markdown supported
                 </span>
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="relative">
-                  <textarea
-                    ref={textareaRef}
-                    className="h-72 p-4 border rounded-xl pr-12 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    required
-                  />
+              {/* Toolbar */}
+              <div className="flex gap-2 flex-wrap bg-gray-50 border rounded-xl p-2">
+                <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
+                  Bold
+                </ToolbarButton>
+                <ToolbarButton onClick={() => applyMarkdown("## ")}>
+                  Heading
+                </ToolbarButton>
+                <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
+                  Code
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() =>
+                    applyMarkdown("\n```js\n", "\n```\n")
+                  }
+                >
+                  Code Block
+                </ToolbarButton>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => toggleRecording("description")}
-                    className={`absolute right-3 top-3 text-xs px-2 py-1 rounded ${
-                      recordingField === "description"
-                        ? "bg-red-600 text-white"
-                        : "bg-gray-200"
-                    }`}
-                  >
-                    🎙
-                  </button>
-                </div>
+              <div className="grid lg:grid-cols-2 gap-6">
+                <textarea
+                  ref={textareaRef}
+                  className="h-72 p-4 border rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+                  value={description}
+                  onFocus={() => (activeFieldRef.current = "description")}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                />
 
                 <div className="h-72 p-4 border rounded-xl bg-gray-50 overflow-auto">
                   <div className="prose max-w-none">
@@ -285,8 +319,71 @@ export default function CreateTicketPage() {
               </div>
             </section>
 
+            {/* Images */}
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-gray-700">
+                Attach Images
+              </h2>
+
+              <div
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+                onClick={() => fileInputRef.current.click()}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition ${dragActive
+                  ? "border-black bg-gray-100"
+                  : "border-gray-300 bg-white"
+                  }`}
+              >
+                <p className="text-sm text-gray-600">
+                  Drag & drop images or{" "}
+                  <span className="underline font-medium">
+                    browse
+                  </span>
+                </p>
+                {uploading && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Uploading…
+                  </p>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) =>
+                  handleFiles(e.target.files)
+                }
+              />
+
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                  {images.map((img) => (
+                    <div key={img} className="relative group">
+                      <img
+                        src={img}
+                        className="w-full h-24 object-cover rounded-xl border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(img)}
+                        className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
+
+
+          {/* Footer */}
           <div className="flex justify-end gap-3 px-8 py-5 border-t bg-gray-50 rounded-b-2xl">
             <button
               type="button"
@@ -309,7 +406,9 @@ export default function CreateTicketPage() {
   );
 }
 
-/* =============================== */
+/* ===============================
+   Toolbar Button
+=============================== */
 function ToolbarButton({ children, onClick }) {
   return (
     <button
