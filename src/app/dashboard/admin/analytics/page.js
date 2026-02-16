@@ -101,98 +101,102 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* ================= Header ================= */}
-        <div>
-          <h1 className="text-3xl font-semibold">
-            Admin Analytics
-          </h1>
-          <p className="text-sm text-gray-500">
-            Overview of administrative activity
-          </p>
-        </div>
+  <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
 
-        {/* ================= KPI Cards ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard
-            label="Total Actions"
-            value={analytics.total}
-          />
-          <StatCard
-            label="Most Active Admin"
-            value={
-              analytics.mostActiveAdmin
-                ? analytics.mostActiveAdmin[0]
-                : "—"
-            }
-            sub={`${analytics.mostActiveAdmin?.[1] || 0} actions`}
-          />
-          <StatCard
-            label="Unique Admins"
-            value={Object.keys(analytics.byAdmin).length}
-          />
-        </div>
+      {/* ================= Header ================= */}
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Admin Analytics
+        </h1>
+        <p className="text-sm text-gray-400">
+          Overview of administrative activity
+        </p>
+      </div>
 
-        {/* ================= Action Breakdown ================= */}
-        <div className="bg-white border rounded-2xl p-6">
-          <h2 className="font-semibold mb-4">
-            Actions Breakdown
-          </h2>
+      {/* ================= KPI Cards ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <StatCard
+          label="Total Actions"
+          value={analytics.total}
+        />
+        <StatCard
+          label="Most Active Admin"
+          value={
+            analytics.mostActiveAdmin
+              ? analytics.mostActiveAdmin[0]
+              : "—"
+          }
+          sub={`${analytics.mostActiveAdmin?.[1] || 0} actions`}
+        />
+        <StatCard
+          label="Unique Admins"
+          value={Object.keys(analytics.byAdmin).length}
+        />
+      </div>
 
-          <div className="grid sm:grid-cols-4 gap-4">
-            {Object.entries(analytics.byAction).map(
-              ([action, count]) => (
-                <div
-                  key={action}
-                  className="border rounded-xl p-4"
-                >
-                  <p className="text-sm text-gray-500">
-                    {action}
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {count}
-                  </p>
-                </div>
-              )
-            )}
-          </div>
-        </div>
+      {/* ================= Action Breakdown ================= */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <h2 className="font-semibold mb-4 text-gray-300">
+          Actions Breakdown
+        </h2>
 
-        {/* ================= Activity Over Time ================= */}
-        <div className="bg-white border rounded-2xl p-6">
-          <h2 className="font-semibold mb-4">
-            Activity (Last 7 Days)
-          </h2>
-
-          <div className="space-y-3">
-            {last7Days.map((day) => {
-              const count = analytics.byDay[day] || 0;
-              return (
-                <div key={day}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{day}</span>
-                    <span>{count}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded">
-                    <div
-                      className="h-2 bg-black rounded"
-                      style={{
-                        width: `${Math.min(
-                          (count / 10) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="grid sm:grid-cols-4 gap-4">
+          {Object.entries(analytics.byAction).map(
+            ([action, count]) => (
+              <div
+                key={action}
+                className="bg-black/50 border border-white/10 rounded-xl p-4 hover:bg-white/5 transition"
+              >
+                <p className="text-sm text-gray-400">
+                  {action}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {count}
+                </p>
+              </div>
+            )
+          )}
         </div>
       </div>
+
+      {/* ================= Activity Over Time ================= */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <h2 className="font-semibold mb-4 text-gray-300">
+          Activity (Last 7 Days)
+        </h2>
+
+        <div className="space-y-4">
+          {last7Days.map((day) => {
+            const count = analytics.byDay[day] || 0;
+            return (
+              <div key={day}>
+                <div className="flex justify-between text-sm mb-1 text-gray-400">
+                  <span>{day}</span>
+                  <span>{count}</span>
+                </div>
+
+                <div className="h-2 bg-white/10 rounded">
+                  <div
+                    className="h-2 bg-blue-600 rounded transition-all"
+                    style={{
+                      width: `${Math.min(
+                        (count / 10) * 100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 /* ===============================
@@ -200,18 +204,19 @@ export default function AdminAnalyticsPage() {
 =============================== */
 function StatCard({ label, value, sub }) {
   return (
-    <div className="bg-white border rounded-2xl p-6">
-      <p className="text-sm text-gray-500">
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition">
+      <p className="text-sm text-gray-400">
         {label}
       </p>
       <p className="text-3xl font-bold mt-1">
         {value}
       </p>
       {sub && (
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           {sub}
         </p>
       )}
     </div>
   );
 }
+
