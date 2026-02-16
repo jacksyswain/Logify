@@ -13,15 +13,16 @@ export default function CreateUserPage() {
     email: "",
     password: "",
     role: "TECHNICIAN",
+    image: "", // 👈 profile image URL
   });
 
+  const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔐 Admin guard
   if (!session || session.user.role !== "ADMIN") {
     return (
-      <div className="p-6 text-red-600 font-medium">
+      <div className="p-6 text-red-400 font-medium">
         Access denied. Admins only.
       </div>
     );
@@ -29,6 +30,30 @@ export default function CreateUserPage() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // 🔥 Profile Image Upload
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setForm((prev) => ({ ...prev, image: data.url }));
+        setPreview(data.url);
+      }
+    } catch (err) {
+      console.error("Upload failed");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -40,7 +65,7 @@ export default function CreateUserPage() {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(form), // 👈 image included automatically
       });
 
       const data = await res.json();
@@ -58,29 +83,59 @@ export default function CreateUserPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-xl mx-auto text-white">
+      
       {/* ================= Header ================= */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">
           Create User
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-400 mt-1">
           Add a new team member and assign a role.
         </p>
       </div>
 
       {/* ================= Card ================= */}
-      <div className="bg-white border rounded-xl p-6 shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Profile Image */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-24 h-24 rounded-full bg-white/10 border border-white/20 overflow-hidden flex items-center justify-center">
+              {preview ? (
+                <img
+                  src={preview}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-400 text-sm">
+                  No Image
+                </span>
+              )}
+            </div>
+
+            <label className="text-sm cursor-pointer text-blue-400 hover:text-blue-300 transition">
+              Upload Profile Image
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) =>
+                  handleImageUpload(e.target.files[0])
+                }
+              />
+            </label>
+          </div>
+
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               Full name
             </label>
             <input
               name="name"
               placeholder="John Doe"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full p-3 rounded-xl bg-black/60 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               onChange={handleChange}
               required
             />
@@ -88,14 +143,14 @@ export default function CreateUserPage() {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               Email address
             </label>
             <input
               name="email"
               type="email"
               placeholder="john@company.com"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full p-3 rounded-xl bg-black/60 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               onChange={handleChange}
               required
             />
@@ -103,14 +158,14 @@ export default function CreateUserPage() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               Temporary password
             </label>
             <input
               name="password"
               type="password"
               placeholder="••••••••"
-              className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full p-3 rounded-xl bg-black/60 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               onChange={handleChange}
               required
             />
@@ -121,14 +176,14 @@ export default function CreateUserPage() {
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               Role
             </label>
             <select
               name="role"
-              className="w-full p-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black"
-              onChange={handleChange}
               value={form.role}
+              className="w-full p-3 rounded-xl bg-black/60 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              onChange={handleChange}
             >
               <option value="TECHNICIAN">
                 Technician – can manage tickets
@@ -141,7 +196,7 @@ export default function CreateUserPage() {
 
           {/* Error */}
           {error && (
-            <div className="text-sm text-red-600">
+            <div className="text-sm text-red-400">
               {error}
             </div>
           )}
@@ -153,18 +208,19 @@ export default function CreateUserPage() {
               onClick={() =>
                 router.push("/dashboard/admin/users")
               }
-              className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+              className="px-5 py-2 border border-white/20 rounded-xl text-sm hover:bg-white/10 transition"
             >
               Cancel
             </button>
 
             <button
               disabled={loading}
-              className="px-5 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 disabled:opacity-60"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition disabled:opacity-60"
             >
               {loading ? "Creating..." : "Create User"}
             </button>
           </div>
+
         </form>
       </div>
     </div>
