@@ -18,7 +18,6 @@ export default function CreateTicketPage() {
   const [submitting, setSubmitting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  /* 🔥 Voice States */
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
   const activeFieldRef = useRef(null);
@@ -26,9 +25,6 @@ export default function CreateTicketPage() {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  /* ===============================
-     Speech Recognition Setup
-  =============================== */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -74,9 +70,6 @@ export default function CreateTicketPage() {
     }
   };
 
-  /* ===============================
-     Role Guard
-  =============================== */
   if (status === "loading") return null;
 
   if (
@@ -85,15 +78,12 @@ export default function CreateTicketPage() {
       session.user.role !== "TECHNICIAN")
   ) {
     return (
-      <div className="max-w-xl mx-auto mt-24 text-center text-red-600">
+      <div className="max-w-xl mx-auto mt-24 text-center text-red-400">
         You are not authorized to create tickets.
       </div>
     );
   }
 
-  /* ===============================
-     Markdown Toolbar
-  =============================== */
   const applyMarkdown = (before, after = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -117,9 +107,6 @@ export default function CreateTicketPage() {
     }, 0);
   };
 
-  /* ===============================
-     Upload
-  =============================== */
   const uploadFile = async (file) => {
     if (!file || !file.type.startsWith("image/")) return;
 
@@ -150,9 +137,6 @@ export default function CreateTicketPage() {
     setImages((prev) => prev.filter((img) => img !== url));
   };
 
-  /* ===============================
-     Drag & Drop
-  =============================== */
   const onDragOver = (e) => {
     e.preventDefault();
     setDragActive(true);
@@ -166,9 +150,6 @@ export default function CreateTicketPage() {
     handleFiles(e.dataTransfer.files);
   };
 
-  /* ===============================
-     Submit
-  =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -192,32 +173,29 @@ export default function CreateTicketPage() {
     }
   };
 
-  /* ===============================
-     UI
-  =============================== */
-   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50">
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-10">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+      <div className="max-w-6xl mx-auto px-6 py-12 space-y-10 text-white">
 
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold tracking-tight">
             New Ticket
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-400 mt-1">
             Create and document a maintenance issue
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white/80 backdrop-blur-xl border border-indigo-100 rounded-3xl shadow-2xl shadow-indigo-100/40"
+          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl"
         >
           <div className="p-10 space-y-12">
 
             {/* Title */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-semibold text-slate-700">
+                <label className="text-sm font-semibold text-gray-300">
                   Title
                 </label>
 
@@ -229,8 +207,8 @@ export default function CreateTicketPage() {
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-xl transition ${
                     isRecording && activeFieldRef.current === "title"
-                      ? "bg-red-600 text-white shadow-md"
-                      : "bg-indigo-50 hover:bg-indigo-100 text-indigo-700"
+                      ? "bg-red-600 text-white"
+                      : "bg-white/10 hover:bg-white/20 text-gray-300"
                   }`}
                 >
                   {isRecording && activeFieldRef.current === "title"
@@ -240,7 +218,7 @@ export default function CreateTicketPage() {
               </div>
 
               <input
-                className="w-full p-3.5 border border-indigo-100 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm hover:shadow-md"
+                className="w-full p-3.5 border border-white/20 rounded-2xl bg-black text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition"
                 placeholder="Brief summary of the issue"
                 value={title}
                 onFocus={() => (activeFieldRef.current = "title")}
@@ -252,15 +230,15 @@ export default function CreateTicketPage() {
             {/* Description */}
             <section className="space-y-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-700">
+                <h2 className="text-sm font-semibold text-gray-300">
                   Description
                 </h2>
-                <span className="text-xs text-indigo-500 font-medium">
+                <span className="text-xs text-gray-500">
                   Markdown supported
                 </span>
               </div>
 
-              <div className="flex gap-2 flex-wrap bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-3">
+              <div className="flex gap-2 flex-wrap bg-white/5 border border-white/10 rounded-2xl p-3">
                 <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
                   Bold
                 </ToolbarButton>
@@ -282,14 +260,15 @@ export default function CreateTicketPage() {
               <div className="grid lg:grid-cols-2 gap-6">
                 <textarea
                   ref={textareaRef}
-                  className="h-72 p-4 border border-indigo-100 rounded-2xl bg-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm hover:shadow-md"
+                  className="h-72 p-4 border border-white/20 rounded-2xl bg-black text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-white/30 transition"
                   value={description}
+                  onFocus={() => (activeFieldRef.current = "description")}
                   onChange={(e) => setDescription(e.target.value)}
                   required
                 />
 
-                <div className="h-72 p-4 border border-indigo-100 rounded-2xl bg-gradient-to-br from-indigo-50/40 to-blue-50/40 overflow-auto">
-                  <div className="prose max-w-none prose-slate">
+                <div className="h-72 p-4 border border-white/10 rounded-2xl bg-white/5 overflow-auto">
+                  <div className="prose max-w-none prose-invert">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {description || "_Live preview…_"}
                     </ReactMarkdown>
@@ -298,20 +277,81 @@ export default function CreateTicketPage() {
               </div>
             </section>
 
+            {/* Images */}
+            <section className="space-y-4">
+              <h2 className="text-sm font-semibold text-gray-300">
+                Attach Images
+              </h2>
+
+              <div
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+                onClick={() => fileInputRef.current.click()}
+                className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition ${
+                  dragActive
+                    ? "border-white bg-white/10"
+                    : "border-white/20 bg-white/5 hover:bg-white/10"
+                }`}
+              >
+                <p className="text-sm text-gray-400">
+                  Drag & drop images or{" "}
+                  <span className="underline font-medium">
+                    browse
+                  </span>
+                </p>
+                {uploading && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Uploading…
+                  </p>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) =>
+                  handleFiles(e.target.files)
+                }
+              />
+
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                  {images.map((img) => (
+                    <div key={img} className="relative group">
+                      <img
+                        src={img}
+                        className="w-full h-24 object-cover rounded-2xl border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(img)}
+                        className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
-          <div className="flex justify-end gap-3 px-10 py-6 border-t border-indigo-100 bg-indigo-50/40 rounded-b-3xl">
+          <div className="flex justify-end gap-3 px-10 py-6 border-t border-white/10 bg-white/5 rounded-b-3xl">
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="px-5 py-2 text-sm border border-indigo-200 text-indigo-700 rounded-xl hover:bg-indigo-50 transition"
+              className="px-5 py-2 text-sm border border-white/20 rounded-xl hover:bg-white/10 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 text-sm bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl shadow-lg shadow-indigo-200 disabled:opacity-50 transition"
+              className="px-6 py-2 text-sm bg-white text-black font-medium rounded-xl hover:bg-gray-200 transition"
             >
               {submitting ? "Creating…" : "Create Ticket"}
             </button>
@@ -320,18 +360,14 @@ export default function CreateTicketPage() {
       </div>
     </div>
   );
-
 }
 
-/* ===============================
-   Toolbar Button
-=============================== */
 function ToolbarButton({ children, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="px-3 py-1.5 text-xs font-medium border rounded-lg hover:bg-white"
+      className="px-3 py-1.5 text-xs font-medium border border-white/20 rounded-lg hover:bg-white/10 transition text-gray-300"
     >
       {children}
     </button>
