@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,6 +18,7 @@ function getInitials(nameOrEmail = "") {
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   const userName =
     session?.user?.name ||
@@ -60,17 +62,28 @@ export default function DashboardLayout({ children }) {
         {/* Header */}
         <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
+
+            {/* Back Button */}
             <button
-              onClick={() => setMobileSidebarOpen(true)}
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10"
+              onClick={() => router.back()}
+              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition"
             >
-              ☰
+              ←
+            </button>
+
+            {/* Forward Button */}
+            <button
+              onClick={() => router.forward()}
+              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition"
+            >
+              →
             </button>
 
             <p className="text-sm font-semibold tracking-wide text-gray-300">
               {pageTitle}
             </p>
           </div>
+
 
           {session && (
             <div className="relative">
@@ -180,48 +193,48 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
             Tickets
           </SidebarLink>
           <SidebarLink
-  href="/dashboard/meters"
-  active={pathname.startsWith("/dashboard/meters")}
->
-  Meters
-</SidebarLink>
+            href="/dashboard/meters"
+            active={pathname.startsWith("/dashboard/meters")}
+          >
+            Meters
+          </SidebarLink>
 
           {(session?.user.role === "ADMIN" ||
             session?.user.role === "TECHNICIAN") && (
-            <SidebarLink
-              href="/dashboard/tickets/new"
-              active={pathname.startsWith("/dashboard/tickets/new")}
-            >
-              New Ticket
-            </SidebarLink>  
-            
-            
-          )}
+              <SidebarLink
+                href="/dashboard/tickets/new"
+                active={pathname.startsWith("/dashboard/tickets/new")}
+              >
+                New Ticket
+              </SidebarLink>
+
+
+            )}
           {session?.user.role === "ADMIN" && (
-          <div>
-            <SidebarLink
-              href="/dashboard/admin/users"
-              active={pathname.startsWith("/dashboard/admin/users")}
-            >
-              Manage Users
-            </SidebarLink>
+            <div>
+              <SidebarLink
+                href="/dashboard/admin/users"
+                active={pathname.startsWith("/dashboard/admin/users")}
+              >
+                Manage Users
+              </SidebarLink>
 
-            <SidebarLink
-              href="/dashboard/admin/analytics"
-              active={pathname.startsWith("/dashboard/admin/analytics")}
-            >
-              Analytics
-            </SidebarLink>
+              <SidebarLink
+                href="/dashboard/admin/analytics"
+                active={pathname.startsWith("/dashboard/admin/analytics")}
+              >
+                Analytics
+              </SidebarLink>
 
-            <SidebarLink
-              href="/dashboard/admin/audit-logs"
-              active={pathname.startsWith("/dashboard/admin/audit-logs")}
-            >
-              Audit Logs
-            </SidebarLink>
-            
-          </div>
-        )}
+              <SidebarLink
+                href="/dashboard/admin/audit-logs"
+                active={pathname.startsWith("/dashboard/admin/audit-logs")}
+              >
+                Audit Logs
+              </SidebarLink>
+
+            </div>
+          )}
         </div>
       </nav>
 
@@ -253,11 +266,10 @@ function SidebarLink({ href, children, active }) {
   return (
     <Link
       href={href}
-      className={`block px-3 py-2 rounded-lg text-sm transition-all ${
-        active
-          ? "bg-blue-600 text-white shadow-lg"
-          : "text-gray-300 hover:bg-white/10 hover:translate-x-1"
-      }`}
+      className={`block px-3 py-2 rounded-lg text-sm transition-all ${active
+        ? "bg-blue-600 text-white shadow-lg"
+        : "text-gray-300 hover:bg-white/10 hover:translate-x-1"
+        }`}
     >
       {children}
     </Link>
