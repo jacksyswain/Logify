@@ -70,14 +70,14 @@ export default function DashboardLayout({ children }) {
             >
               ←
             </button>
-
-            {/* Forward Button */}
+             {/* Forward Button */}
             <button
               onClick={() => router.forward()}
               className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition"
             >
               →
             </button>
+           
 
             <p className="text-sm font-semibold tracking-wide text-gray-300">
               {pageTitle}
