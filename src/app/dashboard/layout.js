@@ -179,6 +179,12 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
           <SidebarLink href="/dashboard" active={pathname === "/dashboard"}>
             Tickets
           </SidebarLink>
+          <SidebarLink
+  href="/dashboard/meters"
+  active={pathname.startsWith("/dashboard/meters")}
+>
+  Meters
+</SidebarLink>
 
           {(session?.user.role === "ADMIN" ||
             session?.user.role === "TECHNICIAN") && (
@@ -187,7 +193,9 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
               active={pathname.startsWith("/dashboard/tickets/new")}
             >
               New Ticket
-            </SidebarLink>
+            </SidebarLink>  
+            
+            
           )}
           {session?.user.role === "ADMIN" && (
           <div>
@@ -211,6 +219,7 @@ function SidebarContent({ session, pathname, initials, userName, onLogout }) {
             >
               Audit Logs
             </SidebarLink>
+            
           </div>
         )}
         </div>
