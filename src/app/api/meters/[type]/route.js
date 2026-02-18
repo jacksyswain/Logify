@@ -1,9 +1,12 @@
 import connectDB from "@/lib/db";
 import MeterReading from "@/models/MeterReading";
 
+/* =====================================
+   GET READINGS BY TYPE
+===================================== */
 export async function GET(req, context) {
   try {
-    const params = await context.params; // ✅ IMPORTANT
+    const params = await context.params; // ✅ Next 16 fix
     const { type } = params;
 
     if (!type) {
@@ -22,7 +25,7 @@ export async function GET(req, context) {
     return Response.json(data);
 
   } catch (error) {
-    console.error(error);
+    console.error("GET Meter Error:", error);
     return Response.json(
       { message: "Server error" },
       { status: 500 }
@@ -31,42 +34,69 @@ export async function GET(req, context) {
 }
 
 
-export async function POST(req, { params }) {
-  await connectDB();
+/* =====================================
+   POST NEW READING
+===================================== */
+export async function POST(req, context) {
+  try {
+    const params = await context.params; // ✅ Next 16 fix
+    const { type } = params;
 
-  const { value } = await req.json();
+    if (!type) {
+      return Response.json(
+        { message: "Meter type required" },
+        { status: 400 }
+      );
+    }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    await connectDB();
 
-  // prevent multiple entries same day
-  const existing = await MeterReading.findOne({
-    type: params.type.toUpperCase(),
-    readingDate: {
-      $gte: today,
-      $lt: new Date(today.getTime() + 86400000),
-    },
-  });
+    const { value } = await req.json();
 
-  if (existing) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 🚫 Prevent multiple entries same day
+    const existing = await MeterReading.findOne({
+      type: type.toUpperCase(),
+      readingDate: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 86400000),
+      },
+    });
+
+    if (existing) {
+      return Response.json(
+        { message: "Today's reading already added" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Create reading
+    await MeterReading.create({
+      type: type.toUpperCase(),
+      value,
+      readingDate: new Date(),
+    });
+
+    // 🧹 30-day cleanup
+    await MeterReading.deleteMany({
+      type: type.toUpperCase(),
+      readingDate: {
+        $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
     return Response.json(
-      { message: "Today's reading already added" },
-      { status: 400 }
+      { message: "Reading added successfully" },
+      { status: 201 }
+    );
+
+  } catch (error) {
+    console.error("POST Meter Error:", error);
+    return Response.json(
+      { message: "Server error" },
+      { status: 500 }
     );
   }
-
-  await MeterReading.create({
-    type: params.type.toUpperCase(),
-    value,
-  });
-
-  // 30-day cleanup
-  await MeterReading.deleteMany({
-    type: params.type.toUpperCase(),
-    readingDate: {
-      $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  return Response.json({ message: "Reading added" });
 }
