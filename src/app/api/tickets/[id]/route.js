@@ -8,8 +8,7 @@ import Ticket from "@/models/Ticket";
 ================================ */
 export async function GET(req, context) {
   try {
-    const params = await context.params; // ✅ IMPORTANT
-    const { id } = params;
+    const { id } = await context.params; // ✅ Next.js 16 fix
 
     await connectDB();
 
@@ -23,9 +22,8 @@ export async function GET(req, context) {
     }
 
     return Response.json(ticket);
-
   } catch (error) {
-    console.error(error);
+    console.error("GET ticket error:", error);
     return Response.json(
       { message: "Server error" },
       { status: 500 }
@@ -33,13 +31,12 @@ export async function GET(req, context) {
   }
 }
 
-
 /* ================================
    PATCH /api/tickets/:id
 ================================ */
 export async function PATCH(req, context) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params; // ✅ FIXED
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -74,7 +71,7 @@ export async function PATCH(req, context) {
     }
 
     /* Update description */
-    if (descriptionMarkdown) {
+    if (descriptionMarkdown !== undefined) {
       ticket.descriptionMarkdown = descriptionMarkdown;
     }
 
@@ -99,6 +96,55 @@ export async function PATCH(req, context) {
     console.error("PATCH ticket error:", error);
     return Response.json(
       { message: "Update failed" },
+      { status: 500 }
+    );
+  }
+}
+
+/* ================================
+   DELETE /api/tickets/:id
+   ADMIN only
+================================ */
+export async function DELETE(req, context) {
+  try {
+    const { id } = await context.params; // ✅ FIXED
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return Response.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    if (session.user.role !== "ADMIN") {
+      return Response.json(
+        { message: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    await connectDB();
+
+    const ticket = await Ticket.findById(id);
+
+    if (!ticket) {
+      return Response.json(
+        { message: "Ticket not found" },
+        { status: 404 }
+      );
+    }
+
+    await Ticket.findByIdAndDelete(id);
+
+    return Response.json(
+      { message: "Ticket deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("DELETE ticket error:", error);
+    return Response.json(
+      { message: "Delete failed" },
       { status: 500 }
     );
   }
