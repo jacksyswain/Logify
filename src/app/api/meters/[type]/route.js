@@ -1,38 +1,28 @@
 import connectDB from "@/lib/db";
 import MeterReading from "@/models/MeterReading";
 
-/* =====================================================
-   GET  /api/meters/[type]
-   Returns all readings for GAS or WATER
-===================================================== */
+/* =====================================
+   GET READINGS BY TYPE
+===================================== */
 export async function GET(req, context) {
   try {
-    const params = await context.params; // ✅ Required in Next 16
+    const params = await context.params; // ✅ Next 16 fix
     const { type } = params;
 
     if (!type) {
       return Response.json(
-        { message: "Meter type is required" },
-        { status: 400 }
-      );
-    }
-
-    const meterType = type.toUpperCase();
-
-    if (!["GAS", "WATER"].includes(meterType)) {
-      return Response.json(
-        { message: "Invalid meter type" },
+        { message: "Meter type required" },
         { status: 400 }
       );
     }
 
     await connectDB();
 
-    const readings = await MeterReading.find({
-      type: meterType,
+    const data = await MeterReading.find({
+      type: type.toUpperCase(),
     }).sort({ readingDate: 1 });
 
-    return Response.json(readings, { status: 200 });
+    return Response.json(data);
 
   } catch (error) {
     console.error("GET Meter Error:", error);
@@ -44,50 +34,31 @@ export async function GET(req, context) {
 }
 
 
-/* =====================================================
-   POST  /api/meters/[type]
-   Adds today's reading (only once per day)
-   Also keeps only last 30 days
-===================================================== */
+/* =====================================
+   POST NEW READING
+===================================== */
 export async function POST(req, context) {
   try {
-    const params = await context.params; // ✅ Required in Next 16
+    const params = await context.params; // ✅ Next 16 fix
     const { type } = params;
 
     if (!type) {
       return Response.json(
-        { message: "Meter type is required" },
-        { status: 400 }
-      );
-    }
-
-    const meterType = type.toUpperCase();
-
-    if (!["GAS", "WATER"].includes(meterType)) {
-      return Response.json(
-        { message: "Invalid meter type" },
+        { message: "Meter type required" },
         { status: 400 }
       );
     }
 
     await connectDB();
 
-    const body = await req.json();
-    const { value } = body;
-
-    if (value === undefined || value === null) {
-      return Response.json(
-        { message: "Reading value is required" },
-        { status: 400 }
-      );
-    }
+    const { value } = await req.json();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ Prevent duplicate entry for same day
+    // 🚫 Prevent multiple entries same day
     const existing = await MeterReading.findOne({
-      type: meterType,
+      type: type.toUpperCase(),
       readingDate: {
         $gte: today,
         $lt: new Date(today.getTime() + 86400000),
@@ -101,28 +72,23 @@ export async function POST(req, context) {
       );
     }
 
-    // ✅ Create new reading
-    const newReading = await MeterReading.create({
-      type: meterType,
-      value: Number(value),
+    // ✅ Create reading
+    await MeterReading.create({
+      type: type.toUpperCase(),
+      value,
       readingDate: new Date(),
     });
 
-    // ✅ Keep only last 30 days
-    const thirtyDaysAgo = new Date(
-      Date.now() - 30 * 24 * 60 * 60 * 1000
-    );
-
+    // 🧹 30-day cleanup
     await MeterReading.deleteMany({
-      type: meterType,
-      readingDate: { $lt: thirtyDaysAgo },
+      type: type.toUpperCase(),
+      readingDate: {
+        $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
     });
 
     return Response.json(
-      {
-        message: "Reading added successfully",
-        reading: newReading,
-      },
+      { message: "Reading added successfully" },
       { status: 201 }
     );
 
