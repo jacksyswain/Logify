@@ -60,7 +60,7 @@ export default function Home() {
 
           <div className="mt-8 flex gap-4">
             <Link
-              href="/dashboard"
+              href="/login"
               className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-medium shadow hover:scale-105 transition"
             >
               Open Dashboard
