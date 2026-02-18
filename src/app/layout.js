@@ -27,3 +27,14 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+export const metadata = {
+  title: "Logify – Maintenance Tracking Platform",
+  description:
+    "Logify is a modern maintenance issue tracking platform for teams. Track tickets, upload evidence, manage users, and monitor workflows.",
+  keywords: [
+    "maintenance tracking",
+    "issue tracking software",
+    "internal workflow system",
+    "ticket management",
+  ],
+};
