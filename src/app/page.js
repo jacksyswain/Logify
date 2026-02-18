@@ -27,7 +27,7 @@ export default function Home() {
 
           <div className="flex gap-4 pt-4">
             <a
-              href="/dashboard"
+              href="/login"
               className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
             >
               Open Dashboard
@@ -145,7 +145,7 @@ export default function Home() {
 
           <div className="mt-8">
             <a
-              href="/dashboard"
+              href="/login"
               className="px-8 py-4 bg-indigo-600 text-white rounded-lg text-lg font-medium hover:bg-indigo-700 transition"
             >
               Get Started
