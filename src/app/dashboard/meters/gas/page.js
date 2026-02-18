@@ -19,53 +19,54 @@ export default function MeterTypePage() {
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(true);
 
-  /* ================= Fetch Readings ================= */
   useEffect(() => {
-    if (!type) return; // ✅ prevent undefined call
+    if (!type) return;
 
-    fetchReadings();
-  }, [type]); // ✅ depend on type
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  const fetchReadings = async () => {
-    try {
-      const res = await fetch(`/api/meters/${type}`);
-      if (!res.ok) throw new Error("Failed to fetch");
+        const res = await fetch(`/api/meters/${type}`);
 
-      const data = await res.json();
-      setReadings(data);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!res.ok) {
+          setReadings([]);
+          return;
+        }
 
-  /* ================= Add Reading ================= */
+        const data = await res.json();
+        setReadings(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setReadings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [type]);
+
   const addReading = async () => {
     if (!value || !type) return;
 
-    try {
-      const res = await fetch(`/api/meters/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: Number(value) }),
-      });
+    const res = await fetch(`/api/meters/${type}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: Number(value) }),
+    });
 
-      if (!res.ok) {
-        const err = await res.json();
-        alert(err.message || "Failed to add reading");
-        return;
-      }
+    const data = await res.json();
 
-      setValue("");
-      fetchReadings();
-    } catch (err) {
-      console.error("Add reading error:", err);
+    if (!res.ok) {
+      alert(data.message);
+      return;
     }
+
+    setValue("");
+    setReadings((prev) => [...prev, data.reading]);
   };
 
-  /* ================= Chart Data ================= */
-  const data = readings.map((r) => ({
+  const chartData = readings.map((r) => ({
     ...r,
     date: new Date(r.readingDate).toLocaleDateString(),
   }));
@@ -73,7 +74,7 @@ export default function MeterTypePage() {
   if (!type) {
     return (
       <div className="min-h-screen bg-black text-white p-6">
-        Loading meter...
+        Invalid meter type
       </div>
     );
   }
@@ -90,11 +91,11 @@ export default function MeterTypePage() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Today's reading"
-          className="p-2 rounded bg-gray-900 border border-white/20"
+          className="p-3 rounded bg-gray-900 border border-white/20"
         />
         <button
           onClick={addReading}
-          className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition"
+          className="px-5 py-3 bg-blue-600 text-white rounded"
         >
           Add
         </button>
@@ -103,13 +104,22 @@ export default function MeterTypePage() {
       <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
         {loading ? (
           <p className="text-gray-400">Loading readings...</p>
+        ) : readings.length === 0 ? (
+          <p className="text-gray-400">
+            No readings added yet.
+          </p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
+            <LineChart data={chartData}>
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#ffffff" />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#3B82F6"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         )}
