@@ -13,68 +13,74 @@ import {
 
 export default function MeterTypePage() {
   const params = useParams();
-  const type = params?.type;
+  const type = params?.type?.toLowerCase();
 
   const [readings, setReadings] = useState([]);
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(true);
 
+  /* ================= Fetch Readings ================= */
   useEffect(() => {
     if (!type) return;
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        const res = await fetch(`/api/meters/${type}`);
-
-        if (!res.ok) {
-          setReadings([]);
-          return;
-        }
-
-        const data = await res.json();
-        setReadings(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setReadings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [type]);
-
-  const addReading = async () => {
-    if (!value || !type) return;
-
-    const res = await fetch(`/api/meters/${type}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value: Number(value) }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.message);
+    if (!["gas", "water"].includes(type)) {
+      console.error("Invalid route type:", type);
       return;
     }
 
-    setValue("");
-    setReadings((prev) => [...prev, data.reading]);
+    fetchReadings();
+  }, [type]);
+
+  const fetchReadings = async () => {
+    try {
+      const res = await fetch(`/api/meters/${type}`);
+      if (!res.ok) throw new Error("Fetch failed");
+
+      const data = await res.json();
+      setReadings(data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= Add Reading ================= */
+  const addReading = async () => {
+    if (!value || !type) return;
+
+    if (!["gas", "water"].includes(type)) return;
+
+    try {
+      const res = await fetch(`/api/meters/${type}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: Number(value) }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Error adding reading");
+        return;
+      }
+
+      setValue("");
+      fetchReadings();
+    } catch (err) {
+      console.error("Add error:", err);
+    }
   };
 
   const chartData = readings.map((r) => ({
-    ...r,
     date: new Date(r.readingDate).toLocaleDateString(),
+    value: r.value,
   }));
 
   if (!type) {
     return (
       <div className="min-h-screen bg-black text-white p-6">
-        Invalid meter type
+        Loading meter...
       </div>
     );
   }
@@ -91,11 +97,11 @@ export default function MeterTypePage() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Today's reading"
-          className="p-3 rounded bg-gray-900 border border-white/20"
+          className="p-2 rounded bg-gray-900 border border-white/20"
         />
         <button
           onClick={addReading}
-          className="px-5 py-3 bg-blue-600 text-white rounded"
+          className="px-4 py-2 bg-white text-black rounded"
         >
           Add
         </button>
@@ -103,23 +109,14 @@ export default function MeterTypePage() {
 
       <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
         {loading ? (
-          <p className="text-gray-400">Loading readings...</p>
-        ) : readings.length === 0 ? (
-          <p className="text-gray-400">
-            No readings added yet.
-          </p>
+          <p className="text-gray-400">Loading...</p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#3B82F6"
-                strokeWidth={2}
-              />
+              <Line type="monotone" dataKey="value" stroke="#ffffff" />
             </LineChart>
           </ResponsiveContainer>
         )}
