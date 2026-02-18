@@ -8,13 +8,12 @@ import Ticket from "@/models/Ticket";
 ================================ */
 export async function GET(req, context) {
   try {
-    const { id } = context.params;
+    const params = await context.params; // ✅ IMPORTANT
+    const { id } = params;
 
     await connectDB();
 
-    const ticket = await Ticket.findById(id)
-      .populate("createdBy", "name email")
-      .populate("statusHistory.changedBy", "name email role");
+    const ticket = await Ticket.findById(id);
 
     if (!ticket) {
       return Response.json(
@@ -23,15 +22,17 @@ export async function GET(req, context) {
       );
     }
 
-    return Response.json(ticket, { status: 200 });
+    return Response.json(ticket);
+
   } catch (error) {
-    console.error("GET ticket error:", error);
+    console.error(error);
     return Response.json(
-      { message: "Failed to fetch ticket" },
+      { message: "Server error" },
       { status: 500 }
     );
   }
 }
+
 
 /* ================================
    PATCH /api/tickets/:id

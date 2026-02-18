@@ -1,15 +1,35 @@
 import connectDB from "@/lib/db";
 import MeterReading from "@/models/MeterReading";
 
-export async function GET(req, { params }) {
-  await connectDB();
+export async function GET(req, context) {
+  try {
+    const params = await context.params; // ✅ IMPORTANT
+    const { type } = params;
 
-  const data = await MeterReading.find({
-    type: params.type.toUpperCase(),
-  }).sort({ readingDate: 1 });
+    if (!type) {
+      return Response.json(
+        { message: "Meter type required" },
+        { status: 400 }
+      );
+    }
 
-  return Response.json(data);
+    await connectDB();
+
+    const data = await MeterReading.find({
+      type: type.toUpperCase(),
+    }).sort({ readingDate: 1 });
+
+    return Response.json(data);
+
+  } catch (error) {
+    console.error(error);
+    return Response.json(
+      { message: "Server error" },
+      { status: 500 }
+    );
+  }
 }
+
 
 export async function POST(req, { params }) {
   await connectDB();
