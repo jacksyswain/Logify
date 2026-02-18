@@ -17,39 +17,45 @@ export default function MeterTypePage() {
 
   const [readings, setReadings] = useState([]);
   const [value, setValue] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  /* ================= Fetch Readings ================= */
+  /* ================= Fetch ================= */
   useEffect(() => {
     if (!type) return;
 
     if (!["gas", "water"].includes(type)) {
-      console.error("Invalid route type:", type);
+      console.error("Invalid type:", type);
       return;
     }
 
-    fetchReadings();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(`/api/meters/${type}`);
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error(data.message);
+          setReadings([]);
+        } else {
+          setReadings(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setReadings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [type]);
-
-  const fetchReadings = async () => {
-    try {
-      const res = await fetch(`/api/meters/${type}`);
-      if (!res.ok) throw new Error("Fetch failed");
-
-      const data = await res.json();
-      setReadings(data);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* ================= Add Reading ================= */
   const addReading = async () => {
     if (!value || !type) return;
-
-    if (!["gas", "water"].includes(type)) return;
 
     try {
       const res = await fetch(`/api/meters/${type}`, {
@@ -61,12 +67,16 @@ export default function MeterTypePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Error adding reading");
+        alert(data.message);
         return;
       }
 
       setValue("");
-      fetchReadings();
+
+      // refetch cleanly instead of manually appending
+      const updated = await fetch(`/api/meters/${type}`);
+      const updatedData = await updated.json();
+      setReadings(updatedData);
     } catch (err) {
       console.error("Add error:", err);
     }
@@ -97,11 +107,11 @@ export default function MeterTypePage() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Today's reading"
-          className="p-2 rounded bg-gray-900 border border-white/20"
+          className="p-3 rounded bg-gray-900 border border-white/20"
         />
         <button
           onClick={addReading}
-          className="px-4 py-2 bg-white text-black rounded"
+          className="px-5 py-3 bg-blue-600 text-white rounded"
         >
           Add
         </button>
@@ -109,14 +119,23 @@ export default function MeterTypePage() {
 
       <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
         {loading ? (
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-gray-400">Loading readings...</p>
+        ) : readings.length === 0 ? (
+          <p className="text-gray-400">
+            No readings added yet.
+          </p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#ffffff" />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#3B82F6"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         )}
