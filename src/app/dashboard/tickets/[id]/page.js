@@ -65,13 +65,13 @@ export default function TicketDetailPage() {
 
     setIsEditing(false);
   };
- const deleteTicket = async () => {
-  await fetch(`/api/tickets/${id}`, {
-    method: "DELETE",
-  });
+  const deleteTicket = async () => {
+    await fetch(`/api/tickets/${id}`, {
+      method: "DELETE",
+    });
 
-  window.location.href = "/dashboard";
-};
+    window.location.href = "/dashboard";
+  };
   /* ================= Confirm Status Change ================= */
   const confirmStatusChange = async () => {
     if (!pendingStatus) return;
@@ -149,7 +149,15 @@ export default function TicketDetailPage() {
           </p>
         </div>
       )}
-      
+      {session?.user.role === "ADMIN" && (
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
+        >
+          Delete Ticket
+        </button>
+      )}
+
       {/* ================= Status Actions ================= */}
       {canEdit && (
         <div className="flex gap-3">
