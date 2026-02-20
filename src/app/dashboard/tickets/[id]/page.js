@@ -67,13 +67,26 @@ export default function TicketDetailPage() {
 
     setIsEditing(false);
   };
-  const deleteTicket = async () => {
-    await fetch(`/api/tickets/${id}`, {
+ const deleteTicket = async () => {
+  try {
+    const res = await fetch(`/api/tickets/${id}`, {
       method: "DELETE",
     });
 
-    window.location.href = "/dashboard";
-  };
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Delete failed");
+      return;
+    }
+
+    router.push("/dashboard");
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
   /* ================= Confirm Status Change ================= */
   const confirmStatusChange = async () => {
     if (!pendingStatus) return;
