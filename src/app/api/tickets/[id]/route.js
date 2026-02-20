@@ -105,18 +105,9 @@ export async function PATCH(req, context) {
    DELETE /api/tickets/:id
    ADMIN only
 ================================ */
-export async function DELETE(req, context) {
+export async function DELETE(req, { params }) {
   try {
-    const params = await context.params;
-    const id = params?.id;
-
-    // ✅ Validate ID
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return Response.json(
-        { message: "Invalid Ticket ID" },
-        { status: 400 }
-      );
-    }
+    const id = params.id; 
 
     const session = await getServerSession(authOptions);
 
@@ -136,14 +127,16 @@ export async function DELETE(req, context) {
 
     await connectDB();
 
-    const deleted = await Ticket.findByIdAndDelete(id);
+    const ticket = await Ticket.findById(id);
 
-    if (!deleted) {
+    if (!ticket) {
       return Response.json(
         { message: "Ticket not found" },
         { status: 404 }
       );
     }
+
+    await Ticket.findByIdAndDelete(id);
 
     return Response.json(
       { message: "Ticket deleted successfully" },
@@ -153,7 +146,7 @@ export async function DELETE(req, context) {
   } catch (error) {
     console.error("DELETE ticket error:", error);
     return Response.json(
-      { message: "Delete failed" },
+      { message: error.message }, // show real error
       { status: 500 }
     );
   }
