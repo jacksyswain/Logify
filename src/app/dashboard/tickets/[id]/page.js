@@ -126,7 +126,23 @@ export default function TicketDetailPage() {
           </p>
         </div>
       </div>
+      {ticket.status !== "OPEN" && ticket.markedDownBy && (
+  <div className="flex items-center gap-3 mt-3">
+    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
+      {ticket.markedDownBy.name?.charAt(0)}
+    </div>
 
+    <p className="text-sm text-gray-600">
+      {ticket.status === "MARKED_DOWN"
+        ? "Marked down"
+        : "Resolved"}{" "}
+      by{" "}
+      <span className="font-medium">
+        {ticket.markedDownBy.name}
+      </span>
+    </p>
+  </div>
+)}
       {/* ================= Status Actions ================= */}
       {canEdit && (
         <div className="flex gap-3">
