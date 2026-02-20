@@ -14,7 +14,7 @@ const STATUS_STYLES = {
 
 export default function TicketDetailPage() {
   const { id } = useParams();
-  
+  const router = useRouter();
   const { data: session } = useSession();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticket, setTicket] = useState(null);
