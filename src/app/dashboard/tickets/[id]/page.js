@@ -14,7 +14,7 @@ const STATUS_STYLES = {
 export default function TicketDetailPage() {
   const { id } = useParams();
   const { data: session } = useSession();
-
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +65,13 @@ export default function TicketDetailPage() {
 
     setIsEditing(false);
   };
+  const deleteTicket = async () => {
+    await fetch(`/api/tickets/${id}`, {
+      method: "DELETE",
+    });
 
+    window.location.href = "/dashboard";
+  };
   /* ================= Confirm Status Change ================= */
   const confirmStatusChange = async () => {
     if (!pendingStatus) return;
@@ -92,10 +98,10 @@ export default function TicketDetailPage() {
 
     setDraft(
       draft.slice(0, start) +
-        before +
-        selected +
-        after +
-        draft.slice(end)
+      before +
+      selected +
+      after +
+      draft.slice(end)
     );
   };
 
@@ -127,22 +133,30 @@ export default function TicketDetailPage() {
         </div>
       </div>
       {ticket.status !== "OPEN" && ticket.markedDownBy && (
-  <div className="flex items-center gap-3 mt-3">
-    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
-      {ticket.markedDownBy.name?.charAt(0)}
-    </div>
+        <div className="flex items-center gap-3 mt-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
+            {ticket.markedDownBy.name?.charAt(0)}
+          </div>
 
-    <p className="text-sm text-gray-600">
-      {ticket.status === "MARKED_DOWN"
-        ? "Marked down"
-        : "Resolved"}{" "}
-      by{" "}
-      <span className="font-medium">
-        {ticket.markedDownBy.name}
-      </span>
-    </p>
-  </div>
-)}
+          <p className="text-sm text-gray-600">
+            {ticket.status === "MARKED_DOWN"
+              ? "Marked down"
+              : "Resolved"}{" "}
+            by{" "}
+            <span className="font-medium">
+              {ticket.markedDownBy.name}
+            </span>
+          </p>
+        </div>
+      )}
+      {session?.user.role === "ADMIN" && (
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
+        >
+          Delete Ticket
+        </button>
+      )}
       {/* ================= Status Actions ================= */}
       {canEdit && (
         <div className="flex gap-3">
@@ -151,10 +165,9 @@ export default function TicketDetailPage() {
               key={status}
               onClick={() => setPendingStatus(status)}
               className={`px-4 py-2 rounded-lg border transition 
-                ${
-                  ticket.status === status
-                    ? "bg-black text-white"
-                    : "hover:bg-gray-100"
+                ${ticket.status === status
+                  ? "bg-black text-white"
+                  : "hover:bg-gray-100"
                 }`}
             >
               {status}
