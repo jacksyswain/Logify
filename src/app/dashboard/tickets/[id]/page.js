@@ -165,14 +165,40 @@ export default function TicketDetailPage() {
         </div>
       )}
       {session?.user.role === "ADMIN" && (
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
-        >
-          Delete Ticket
-        </button>
-      )}
+  <>
+    <button
+      onClick={() => setShowDeleteConfirm(true)}
+      className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
+    >
+      Delete Ticket
+    </button>
 
+    {showDeleteConfirm && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
+          <h3 className="text-lg font-semibold text-red-600">
+            Are you sure you want to delete this ticket?
+          </h3>
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-4 py-2 border rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={deleteTicket}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg"
+            >
+              Confirm Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
+)}
       {/* ================= Status Actions ================= */}
       {canEdit && (
         <div className="flex gap-3">
