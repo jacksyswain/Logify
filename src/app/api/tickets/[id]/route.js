@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
@@ -8,11 +9,21 @@ import Ticket from "@/models/Ticket";
 ================================ */
 export async function GET(req, context) {
   try {
-    const { id } = await context.params; // ✅ Next.js 16 fix
+    const { id } = await context.params; // ✅ Next 16 fix
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return Response.json(
+        { message: "Invalid ticket ID" },
+        { status: 400 }
+      );
+    }
 
     await connectDB();
 
-    const ticket = await Ticket.findById(id);
+    const ticket = await Ticket.findById(id)
+      .populate("createdBy", "name email role")
+      .populate("markedDownBy", "name email role")
+      .populate("statusHistory.changedBy", "name email");
 
     if (!ticket) {
       return Response.json(
@@ -56,6 +67,13 @@ export async function PATCH(req, context) {
       );
     }
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return Response.json(
+        { message: "Invalid ticket ID" },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     const { descriptionMarkdown, status } = body;
 
@@ -70,12 +88,12 @@ export async function PATCH(req, context) {
       );
     }
 
-    /* Update description */
+    // Update description
     if (descriptionMarkdown !== undefined) {
       ticket.descriptionMarkdown = descriptionMarkdown;
     }
 
-    /* Update status + history */
+    // Update status + push history
     if (status && status !== ticket.status) {
       ticket.status = status;
 
@@ -88,8 +106,13 @@ export async function PATCH(req, context) {
 
     await ticket.save();
 
+    const updatedTicket = await Ticket.findById(id)
+      .populate("createdBy", "name email role")
+      .populate("markedDownBy", "name email role")
+      .populate("statusHistory.changedBy", "name email");
+
     return Response.json(
-      { message: "Ticket updated", ticket },
+      { message: "Ticket updated", ticket: updatedTicket },
       { status: 200 }
     );
   } catch (error) {
@@ -105,9 +128,9 @@ export async function PATCH(req, context) {
    DELETE /api/tickets/:id
    ADMIN only
 ================================ */
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
   try {
-    const id = params.id; 
+    const { id } = await context.params; // ✅ FIXED HERE
 
     const session = await getServerSession(authOptions);
 
@@ -122,6 +145,13 @@ export async function DELETE(req, { params }) {
       return Response.json(
         { message: "Forbidden" },
         { status: 403 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return Response.json(
+        { message: "Invalid ticket ID" },
+        { status: 400 }
       );
     }
 
@@ -142,11 +172,10 @@ export async function DELETE(req, { params }) {
       { message: "Ticket deleted successfully" },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("DELETE ticket error:", error);
     return Response.json(
-      { message: error.message }, // show real error
+      { message: error.message },
       { status: 500 }
     );
   }
