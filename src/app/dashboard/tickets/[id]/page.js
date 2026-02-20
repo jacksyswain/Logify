@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import ReactMarkdown from "react-markdown";
 
 const STATUS_STYLES = {
   OPEN: "bg-blue-100 text-blue-700 border-blue-300",
@@ -17,12 +18,14 @@ export default function TicketDetailPage() {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const canEdit =
-    session &&
-    (session.user.role === "ADMIN" ||
-      session.user.role === "TECHNICIAN");
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
 
-  /* ================= Fetch Ticket ================= */
+  const [pendingStatus, setPendingStatus] = useState(null);
+
+  const textareaRef = useRef(null);
+
+  /* ================= Fetch ================= */
   useEffect(() => {
     if (!id) return;
 
@@ -31,6 +34,7 @@ export default function TicketDetailPage() {
         const res = await fetch(`/api/tickets/${id}`);
         const data = await res.json();
         setTicket(data);
+        setDraft(data.descriptionMarkdown || "");
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,18 +45,58 @@ export default function TicketDetailPage() {
     fetchTicket();
   }, [id]);
 
-  /* ================= Change Status ================= */
-  const changeStatus = async (status) => {
-    if (!canEdit) return;
+  const canEdit =
+    session &&
+    (session.user.role === "ADMIN" ||
+      session.user.role === "TECHNICIAN");
+
+  /* ================= Save Markdown ================= */
+  const saveMarkdown = async () => {
+    await fetch(`/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ descriptionMarkdown: draft }),
+    });
+
+    setTicket((prev) => ({
+      ...prev,
+      descriptionMarkdown: draft,
+    }));
+
+    setIsEditing(false);
+  };
+
+  /* ================= Confirm Status Change ================= */
+  const confirmStatusChange = async () => {
+    if (!pendingStatus) return;
 
     const res = await fetch(`/api/tickets/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status: pendingStatus }),
     });
 
     const data = await res.json();
     setTicket(data.ticket);
+    setPendingStatus(null);
+  };
+
+  /* ================= Markdown Toolbar ================= */
+  const applyMarkdown = (before, after = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = draft.slice(start, end);
+
+    setDraft(
+      draft.slice(0, start) +
+        before +
+        selected +
+        after +
+        draft.slice(end)
+    );
   };
 
   if (loading)
@@ -71,51 +115,135 @@ export default function TicketDetailPage() {
       {/* ================= Header ================= */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">{ticket.title}</h1>
-
         <div className="flex items-center gap-4">
           <span
             className={`px-3 py-1 text-xs rounded-full border ${STATUS_STYLES[ticket.status]}`}
           >
             {ticket.status}
           </span>
-
           <p className="text-sm text-gray-500">
             Created {new Date(ticket.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* ================= Status Buttons ================= */}
+      {/* ================= Status Actions ================= */}
       {canEdit && (
-        <div className="flex gap-3 flex-wrap">
-          <StatusButton
-            label="Open"
-            active={ticket.status === "OPEN"}
-            onClick={() => changeStatus("OPEN")}
-          />
-          <StatusButton
-            label="Marked Down"
-            active={ticket.status === "MARKED_DOWN"}
-            onClick={() => changeStatus("MARKED_DOWN")}
-          />
-          <StatusButton
-            label="Resolved"
-            active={ticket.status === "RESOLVED"}
-            onClick={() => changeStatus("RESOLVED")}
-          />
+        <div className="flex gap-3">
+          {["OPEN", "MARKED_DOWN", "RESOLVED"].map((status) => (
+            <button
+              key={status}
+              onClick={() => setPendingStatus(status)}
+              className={`px-4 py-2 rounded-lg border transition 
+                ${
+                  ticket.status === status
+                    ? "bg-black text-white"
+                    : "hover:bg-gray-100"
+                }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ================= Status Confirmation Card ================= */}
+      {pendingStatus && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
+            <h3 className="text-lg font-semibold">
+              Change status to {pendingStatus}?
+            </h3>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setPendingStatus(null)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStatusChange}
+                className="px-4 py-2 bg-black text-white rounded-lg"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* ================= Description ================= */}
       <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
-        <h2 className="font-semibold">Description</h2>
+        <div className="flex justify-between">
+          <h2 className="font-semibold">Description</h2>
 
-        <p className="text-gray-700 whitespace-pre-line">
-          {ticket.description || "No description provided."}
-        </p>
+          {canEdit && !isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-sm underline"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+
+        {isEditing ? (
+          <>
+            <div className="flex gap-2">
+              <ToolbarButton onClick={() => applyMarkdown("**", "**")}>
+                Bold
+              </ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("## ")}>
+                Heading
+              </ToolbarButton>
+              <ToolbarButton onClick={() => applyMarkdown("`", "`")}>
+                Code
+              </ToolbarButton>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={12}
+                className="w-full border rounded-lg p-3 font-mono text-sm"
+              />
+
+              <div className="border rounded-lg p-4 overflow-auto prose max-w-none">
+                <ReactMarkdown>{draft}</ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={saveMarkdown}
+                className="px-4 py-2 bg-black text-white rounded-lg"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setDraft(ticket.descriptionMarkdown);
+                  setIsEditing(false);
+                }}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="prose max-w-none">
+            <ReactMarkdown>
+              {ticket.descriptionMarkdown}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
 
-      {/* ================= Activity ================= */}
+      {/* ================= Activity Timeline ================= */}
       <div className="bg-white border rounded-2xl p-6 shadow-sm">
         <h2 className="font-semibold mb-6">Activity</h2>
 
@@ -127,18 +255,14 @@ export default function TicketDetailPage() {
 
 /* ================= Components ================= */
 
-function StatusButton({ label, active, onClick }) {
+function ToolbarButton({ children, onClick }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`px-4 py-2 rounded-lg border transition 
-        ${
-          active
-            ? "bg-black text-white"
-            : "hover:bg-gray-100"
-        }`}
+      className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
     >
-      {label}
+      {children}
     </button>
   );
 }
