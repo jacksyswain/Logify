@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
+import { useRouter } from "next/navigation";
 
 const STATUS_STYLES = {
   OPEN: "bg-blue-100 text-blue-700 border-blue-300",
@@ -13,6 +14,7 @@ const STATUS_STYLES = {
 
 export default function TicketDetailPage() {
   const { id } = useParams();
+  
   const { data: session } = useSession();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticket, setTicket] = useState(null);
