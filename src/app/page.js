@@ -11,9 +11,7 @@ export default function Home() {
       <AnimatedBackground />
 
       {/* ================= FLOATING NAVBAR ================= */}
-      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50
-        backdrop-blur-xl bg-white/70 border border-slate-200
-        shadow-lg rounded-full px-8 py-3 flex items-center gap-8">
+      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-xl bg-white/70 border border-slate-200 shadow-lg rounded-full px-8 py-3 flex items-center gap-8">
 
         <span className="font-semibold text-slate-900">
           Logify
@@ -89,9 +87,16 @@ function AnimatedBackground() {
   return (
     <div className="absolute inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-cyan-50" />
-      <div className="absolute inset-0 opacity-40
-        [background-image:linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)]
-        [background-size:40px_40px]" />
+
+      {/* ✅ FIXED HYDRATION ISSUE HERE */}
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right,#e2e8f0 1px,transparent 1px),linear-gradient(to bottom,#e2e8f0 1px,transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
     </div>
   );
 }
@@ -173,9 +178,7 @@ function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.15 }}
-            className="backdrop-blur-xl bg-white/70 border border-slate-200
-              rounded-3xl p-8 shadow-sm hover:shadow-xl
-              hover:-translate-y-2 transition"
+            className="backdrop-blur-xl bg-white/70 border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-2 transition"
           >
             <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-6 text-indigo-600 font-bold">
               {feature.icon}
