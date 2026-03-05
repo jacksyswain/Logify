@@ -27,9 +27,7 @@ export default function UsersListPage() {
     setLoading(false);
   };
 
-  /* ================================
-     Guards (AFTER hooks)
-  ================================= */
+  
   if (status === "loading") {
     return <p className="p-6">Checking access...</p>;
   }
