@@ -265,7 +265,7 @@ export default function AuditLogsPage() {
             </tbody>
           </table>
 
-          {/* ================= Pagination ================= */}
+         
           <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 bg-white/5">
             <span className="text-sm text-gray-400">
               Page {page} of {totalPages}

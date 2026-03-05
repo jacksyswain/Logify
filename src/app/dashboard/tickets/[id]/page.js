@@ -67,26 +67,26 @@ export default function TicketDetailPage() {
 
     setIsEditing(false);
   };
- const deleteTicket = async () => {
-  try {
-    const res = await fetch(`/api/tickets/${id}`, {
-      method: "DELETE",
-    });
+  const deleteTicket = async () => {
+    try {
+      const res = await fetch(`/api/tickets/${id}`, {
+        method: "DELETE",
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.message || "Delete failed");
-      return;
+      if (!res.ok) {
+        alert(data.message || "Delete failed");
+        return;
+      }
+
+      router.push("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
     }
-
-    router.push("/dashboard");
-
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong");
-  }
-};
+  };
   /* ================= Confirm Status Change ================= */
   const confirmStatusChange = async () => {
     if (!pendingStatus) return;
@@ -165,40 +165,40 @@ export default function TicketDetailPage() {
         </div>
       )}
       {session?.user.role === "ADMIN" && (
-  <>
-    <button
-      onClick={() => setShowDeleteConfirm(true)}
-      className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
-    >
-      Delete Ticket
-    </button>
+        <>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-50 transition"
+          >
+            Delete Ticket
+          </button>
 
-    {showDeleteConfirm && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
-          <h3 className="text-lg font-semibold text-red-600">
-            Are you sure you want to delete this ticket?
-          </h3>
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
+                <h3 className="text-lg font-semibold text-red-600">
+                  Are you sure you want to delete this ticket?
+                </h3>
 
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              className="px-4 py-2 border rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={deleteTicket}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg"
-            >
-              Confirm Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </>
-)}
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="px-4 py-2 border rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={deleteTicket}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                  >
+                    Confirm Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
       {/* ================= Status Actions ================= */}
       {canEdit && (
         <div className="flex gap-3">
