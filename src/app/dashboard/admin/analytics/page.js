@@ -257,9 +257,7 @@ export default function AdminAnalyticsPage() {
   );
 }
 
-/* ===============================
-   Components
-=============================== */
+
 function StatCard({ label, value, sub }) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition">
