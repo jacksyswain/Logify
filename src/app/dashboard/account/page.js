@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-/* ================= Utils ================= */
+
 function getInitials(nameOrEmail = "") {
   const base = nameOrEmail.split("@")[0];
   const parts = base.split(/[.\s_-]/);
