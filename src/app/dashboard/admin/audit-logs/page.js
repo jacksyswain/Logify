@@ -214,7 +214,7 @@ export default function AuditLogsPage() {
           />
         </div>
 
-        {/* ================= Table ================= */}
+        
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl">
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-gray-300">
